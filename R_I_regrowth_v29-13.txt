@@ -127,7 +127,8 @@ Title.Name = "Title"
 Title.Size = UDim2.new(1, -44, 1, 0)
 Title.Position = UDim2.new(0, 12, 0, 0)
 Title.BackgroundTransparency = 1
-Title.Text = "MAIN HUB"
+Title.Text = "REGROWTH INCREMENTAL"
+Title.TextTruncate = Enum.TextTruncate.AtEnd
 Title.TextColor3 = Theme.Text
 Title.TextSize = 13
 Title.Font = Enum.Font.GothamBlack
@@ -326,6 +327,20 @@ for i, secName in ipairs(sectionOrder) do
 end
 
 -- Number Parsers
+-- Game suffix list (case matters: "qg" = e+123 but "Qg" = e+153). Index i = 10^(3*i).
+local NUMBER_SUFFIXES = {
+	"K", "M", "B", "T", "QA", "QI", "SX", "SP", "OC", "NO", "DC",
+	"UD", "DD", "TD", "QAD", "QID", "SXD", "SPD", "OCD", "NOD", "VG",
+	"UVG", "DVG", "TVG", "QAVG", "QIVG", "SXVG", "SPVG", "OCVG", "NOVG", "TG",
+	"UTG", "DTG", "TTG", "QATG", "QITG", "SXTG", "SPTG", "OCTG", "NOTG", "qg",
+	"Uqg", "Dqg", "Tqg", "Qaqg", "Qiqg", "Sxqg", "Spqg", "Ocqg", "Noqg", "Qg",
+	"UQg", "DQg", "TQg", "QaQg", "QiQg", "SxQg", "SpQg", "OcQg", "NoQg", "Qq"
+}
+local SUFFIX_EXPONENT = {}
+for i, name in ipairs(NUMBER_SUFFIXES) do
+	SUFFIX_EXPONENT[name] = i * 3
+end
+
 local function parseFormattedNumber(str)
 	if not str or str == "" then return nil end
 	if type(str) == "number" then return str end
@@ -347,6 +362,11 @@ local function parseFormattedNumber(str)
 
 	local num = tonumber(numStr)
 	if not num then return nil end
+
+	-- Exact-case match first: the game's "Qg" (e+153) and "qg" (e+123) only differ by case
+	if suffix and SUFFIX_EXPONENT[suffix] then
+		return num * (10 ^ SUFFIX_EXPONENT[suffix])
+	end
 
 	suffix = suffix and suffix:upper() or ""
 	if suffix == "" then return num end
@@ -394,38 +414,85 @@ end
 -- How many decimals the Stats panel shows (2 -> 536.31SP). Change this to 3 for 536.310SP.
 local STAT_DECIMALS = 2
 
+-- Stats use a mantissa + exponent pair so they can go far past Lua's 1e308 limit
+-- (tested range: up to e+5000). Returns m (1 <= m < 10) and e (integer), or nil.
+local function toMantissaExp(raw)
+	if raw == nil then return nil end
+
+	local m, e
+	if type(raw) == "number" then
+		if raw ~= raw or raw == math.huge or raw == -math.huge then return nil end
+		if raw == 0 then return 0, 0 end
+		e = math.floor(math.log10(math.abs(raw)))
+		m = raw / (10 ^ e)
+	else
+		local clean = tostring(raw):gsub("<[^>]->", ""):gsub("[%$%,%s]", "")
+
+		-- Scientific text such as 9.776332776159724e+153 or 1.5E+4800 (kept as text, never a double)
+		local ms, es = clean:match("^(-?[%d%.]+)[eE]([%+%-]?%d+)$")
+		if ms and tonumber(ms) and tonumber(es) then
+			m = tonumber(ms)
+			e = math.floor(tonumber(es))
+			if m == 0 then return 0, 0 end
+		else
+			-- Suffix text such as 536.31SP / 3.44Qg -> reuse the existing parser
+			local n = parseFormattedNumber(clean)
+			if not n then return nil end
+			return toMantissaExp(n)
+		end
+	end
+
+	-- Normalize the mantissa into [1, 10)
+	local sign = m < 0 and -1 or 1
+	m = math.abs(m)
+	while m >= 10 do m = m / 10; e = e + 1 end
+	while m < 1 do m = m * 10; e = e - 1 end
+	return m * sign, e
+end
+
+local STAT_SUFFIXES = NUMBER_SUFFIXES
+
+-- Accepts a number OR text (e.g. "9.776332776159724e+153"). Uses the letter suffixes up to
+-- 1e185 (Qq); anything bigger is shown as scientific notation, e.g. 9.78e+4200.
 local function formatShortNumber(val)
-	if not val or type(val) ~= "number" then return "0" end
+	local m, e = toMantissaExp(val)
+	if not m then return "0" end
+	if m == 0 then return "0" end
+
 	local fmt = "%." .. STAT_DECIMALS .. "f"
-	if val < 1000 then
-		if val == math.floor(val) then return tostring(val) end
-		return string.format(fmt, val)
+
+	if e < 3 then
+		local plain = m * (10 ^ e)
+		if e >= 0 and plain == math.floor(plain) then
+			return tostring(math.floor(plain))
+		end
+		return string.format(fmt, plain)
 	end
 
-	local suffixes = {
-		"K", "M", "B", "T", "QA", "QI", "SX", "SP", "OC", "NO", "DC",
-		"UD", "DD", "TD", "QAD", "QID", "SXD", "SPD", "OCD", "NOD", "VG",
-		"UVG", "DVG", "TVG", "QAVG", "QIVG", "SXVG", "SPVG", "OCVG", "NOVG", "TG",
-		"UTG", "DTG", "TTG", "QATG", "QITG", "SXTG", "SPTG", "OCTG", "NOTG", "qg",
-		"Uqg", "Dqg", "Tqg", "Qaqg", "Qiqg", "Sxqg", "Spqg", "Ocqg", "Noqg", "Qg",
-		"UQg", "DQg", "TQg", "QaQg", "QiQg", "SxQg", "SpQg", "OcQg", "NoQg", "Qq"
-	}
+	local groups = math.floor(e / 3)
+	if groups <= #STAT_SUFFIXES then
+		local scaled = m * (10 ^ (e - groups * 3))
 
-	local exp = math.floor(math.log10(val) / 3)
-	if exp > #suffixes then
-		exp = #suffixes
+		-- Rounding can push 999.999K up to "1000.00K"; roll that over to the next suffix
+		if tonumber(string.format(fmt, scaled)) >= 1000 then
+			groups = groups + 1
+			if groups <= #STAT_SUFFIXES then
+				scaled = m * (10 ^ (e - groups * 3))
+			end
+		end
+
+		if groups <= #STAT_SUFFIXES then
+			return string.format(fmt, scaled) .. STAT_SUFFIXES[groups]
+		end
+		-- rolled past the last suffix -> fall through to scientific notation
 	end
 
-	local scaled = val / (10 ^ (exp * 3))
-
-	-- Rounding can push 999.999K up to "1000.00K"; roll that over to the next suffix
-	local rounded = tonumber(string.format(fmt, scaled))
-	if rounded >= 1000 and exp < #suffixes then
-		exp = exp + 1
-		scaled = val / (10 ^ (exp * 3))
+	local mm, ee = m, e
+	if tonumber(string.format(fmt, mm)) >= 10 then
+		mm = 1
+		ee = ee + 1
 	end
-
-	return string.format(fmt, scaled) .. suffixes[exp]
+	return string.format(fmt, mm) .. "e+" .. tostring(ee)
 end
 
 -- Canvas Resize Helpers
@@ -858,14 +925,8 @@ local function trackStat(statNames, displayLabel, prefix, labelColor, accentBar,
 					rawVal = obj.Text
 				end
 
-				local numVal
-				if type(rawVal) == "number" then
-					numVal = rawVal
-				else
-					numVal = parseFormattedNumber(tostring(rawVal)) or 0
-				end
-
-				displayLabel.Text = prefix .. ": " .. formatShortNumber(numVal)
+				-- Pass the raw value (number or text) so e+153...e+5000 never gets squashed into a double
+				displayLabel.Text = prefix .. ": " .. formatShortNumber(rawVal)
 				if hideUntilFound and displayLabel.Parent then
 					displayLabel.Parent.Visible = true
 				end
