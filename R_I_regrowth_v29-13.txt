@@ -1,0 +1,3693 @@
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local LocalPlayer = Players.LocalPlayer
+local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
+
+local existingGui = PlayerGui:FindFirstChild("MainHubGUI")
+if existingGui then
+	existingGui:Destroy()
+end
+
+-- Theme
+local Theme = {
+	Background    = Color3.fromRGB(13, 13, 18),
+	PanelTop      = Color3.fromRGB(23, 23, 32),
+	PanelBottom   = Color3.fromRGB(15, 15, 21),
+	Element       = Color3.fromRGB(25, 25, 35),
+	ElementHover  = Color3.fromRGB(33, 33, 47),
+	TrackOff      = Color3.fromRGB(42, 42, 56),
+	Stroke        = Color3.fromRGB(50, 50, 68),
+	Text          = Color3.fromRGB(240, 240, 246),
+	TextDim       = Color3.fromRGB(140, 140, 158),
+	Accent        = Color3.fromRGB(96, 110, 245),
+	Accent2       = Color3.fromRGB(176, 124, 255),
+	Success       = Color3.fromRGB(72, 205, 130),
+	HeaderTop     = Color3.fromRGB(41, 41, 66),
+	HeaderBottom  = Color3.fromRGB(24, 24, 39),
+}
+
+local TWEEN_FAST = TweenInfo.new(0.12, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+local TWEEN_MED  = TweenInfo.new(0.18, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+
+local function tween(obj, info, props)
+	TweenService:Create(obj, info, props):Play()
+end
+
+-- Root Gui
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "MainHubGUI"
+ScreenGui.ResetOnSpawn = false
+ScreenGui.DisplayOrder = 999999
+ScreenGui.Parent = PlayerGui
+
+-- Drop shadow
+local Shadow = Instance.new("Frame")
+Shadow.Name = "Shadow"
+Shadow.Size = UDim2.new(0, 284, 0, 30)
+Shadow.Position = UDim2.new(0.5, -138, 0.35, 6)
+Shadow.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+Shadow.BackgroundTransparency = 0.55
+Shadow.BorderSizePixel = 0
+Shadow.Parent = ScreenGui
+local ShadowCorner = Instance.new("UICorner")
+ShadowCorner.CornerRadius = UDim.new(0, 12)
+ShadowCorner.Parent = Shadow
+
+local MainFrame = Instance.new("Frame")
+MainFrame.Name = "MainFrame"
+MainFrame.Size = UDim2.new(0, 280, 0, 30)
+MainFrame.Position = UDim2.new(0.5, -140, 0.35, 14)
+MainFrame.BackgroundColor3 = Theme.Background
+MainFrame.BorderSizePixel = 0
+MainFrame.Active = true
+MainFrame.ClipsDescendants = true
+MainFrame.Parent = ScreenGui
+
+local MainGradient = Instance.new("UIGradient")
+MainGradient.Color = ColorSequence.new({
+	ColorSequenceKeypoint.new(0, Theme.PanelTop),
+	ColorSequenceKeypoint.new(1, Theme.PanelBottom),
+})
+MainGradient.Rotation = 90
+MainGradient.Parent = MainFrame
+
+local MainCorner = Instance.new("UICorner")
+MainCorner.CornerRadius = UDim.new(0, 10)
+MainCorner.Parent = MainFrame
+
+local MainStroke = Instance.new("UIStroke")
+MainStroke.Color = Theme.Stroke
+MainStroke.Thickness = 1
+MainStroke.Transparency = 0.25
+MainStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+MainStroke.Parent = MainFrame
+
+-- Header
+local Header = Instance.new("Frame")
+Header.Name = "Header"
+Header.Size = UDim2.new(1, 0, 0, 32)
+Header.BackgroundColor3 = Theme.HeaderBottom
+Header.BorderSizePixel = 0
+Header.Parent = MainFrame
+
+local HeaderGradient = Instance.new("UIGradient")
+HeaderGradient.Color = ColorSequence.new({
+	ColorSequenceKeypoint.new(0, Theme.HeaderTop),
+	ColorSequenceKeypoint.new(1, Theme.HeaderBottom),
+})
+HeaderGradient.Rotation = 90
+HeaderGradient.Parent = Header
+
+local HeaderCorner = Instance.new("UICorner")
+HeaderCorner.CornerRadius = UDim.new(0, 10)
+HeaderCorner.Parent = Header
+
+-- thin accent line under header
+local HeaderLine = Instance.new("Frame")
+HeaderLine.Size = UDim2.new(1, 0, 0, 1)
+HeaderLine.Position = UDim2.new(0, 0, 1, 0)
+HeaderLine.BackgroundColor3 = Theme.Accent
+HeaderLine.BackgroundTransparency = 0.4
+HeaderLine.BorderSizePixel = 0
+HeaderLine.Parent = Header
+
+local HeaderLineGradient = Instance.new("UIGradient")
+HeaderLineGradient.Color = ColorSequence.new({
+	ColorSequenceKeypoint.new(0, Theme.Accent),
+	ColorSequenceKeypoint.new(1, Theme.Accent2),
+})
+HeaderLineGradient.Parent = HeaderLine
+
+local Title = Instance.new("TextLabel")
+Title.Name = "Title"
+Title.Size = UDim2.new(1, -44, 1, 0)
+Title.Position = UDim2.new(0, 12, 0, 0)
+Title.BackgroundTransparency = 1
+Title.Text = "MAIN HUB"
+Title.TextColor3 = Theme.Text
+Title.TextSize = 13
+Title.Font = Enum.Font.GothamBlack
+Title.TextXAlignment = Enum.TextXAlignment.Left
+Title.Parent = Header
+
+local TitleGradient = Instance.new("UIGradient")
+TitleGradient.Color = ColorSequence.new({
+	ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 255, 255)),
+	ColorSequenceKeypoint.new(1, Color3.fromRGB(190, 195, 255)),
+})
+TitleGradient.Parent = Title
+
+local MinimizeBtn = Instance.new("TextButton")
+MinimizeBtn.Name = "MinimizeBtn"
+MinimizeBtn.Size = UDim2.new(0, 24, 0, 24)
+MinimizeBtn.Position = UDim2.new(1, -28, 0, 4)
+MinimizeBtn.BackgroundColor3 = Theme.Element
+MinimizeBtn.Text = "_"
+MinimizeBtn.TextColor3 = Theme.Text
+MinimizeBtn.TextSize = 13
+MinimizeBtn.Font = Enum.Font.GothamBold
+MinimizeBtn.AutoButtonColor = false
+MinimizeBtn.BorderSizePixel = 0
+MinimizeBtn.Parent = Header
+
+local MinimizeCorner = Instance.new("UICorner")
+MinimizeCorner.CornerRadius = UDim.new(0, 6)
+MinimizeCorner.Parent = MinimizeBtn
+
+MinimizeBtn.MouseEnter:Connect(function()
+	tween(MinimizeBtn, TWEEN_FAST, {BackgroundColor3 = Theme.ElementHover})
+end)
+MinimizeBtn.MouseLeave:Connect(function()
+	tween(MinimizeBtn, TWEEN_FAST, {BackgroundColor3 = Theme.Element})
+end)
+
+-- Tab Bar + Content
+local PanelContainer = Instance.new("ScrollingFrame")
+PanelContainer.Name = "PanelContainer"
+PanelContainer.Size = UDim2.new(1, -16, 0, 24)
+PanelContainer.Position = UDim2.new(0, 8, 0, 64)
+PanelContainer.BackgroundTransparency = 1
+PanelContainer.BorderSizePixel = 0
+PanelContainer.ScrollBarThickness = 2
+PanelContainer.ScrollBarImageColor3 = Theme.Stroke
+PanelContainer.ScrollingDirection = Enum.ScrollingDirection.X
+PanelContainer.CanvasSize = UDim2.new(0, 0, 0, 0)
+PanelContainer.Parent = MainFrame
+
+local PanelList = Instance.new("UIListLayout")
+PanelList.FillDirection = Enum.FillDirection.Horizontal
+PanelList.SortOrder = Enum.SortOrder.LayoutOrder
+PanelList.Padding = UDim.new(0, 5)
+PanelList.Parent = PanelContainer
+
+local Content = Instance.new("ScrollingFrame")
+Content.Name = "Content"
+Content.Size = UDim2.new(1, -16, 1, -104)
+Content.Position = UDim2.new(0, 8, 0, 96)
+Content.BackgroundTransparency = 1
+Content.BorderSizePixel = 0
+Content.ScrollBarThickness = 3
+Content.ScrollBarImageColor3 = Theme.Stroke
+Content.CanvasSize = UDim2.new(0, 0, 0, 0)
+Content.Parent = MainFrame
+
+-- Search row
+local SearchRow = Instance.new("Frame")
+SearchRow.Name = "SearchRow"
+SearchRow.Size = UDim2.new(1, -88, 0, 22)
+SearchRow.Position = UDim2.new(0, 8, 0, 38)
+SearchRow.BackgroundColor3 = Theme.Element
+SearchRow.BorderSizePixel = 0
+SearchRow.Parent = MainFrame
+
+local SearchRowCorner = Instance.new("UICorner")
+SearchRowCorner.CornerRadius = UDim.new(0, 6)
+SearchRowCorner.Parent = SearchRow
+
+local SearchRowStroke = Instance.new("UIStroke")
+SearchRowStroke.Color = Theme.Stroke
+SearchRowStroke.Thickness = 1
+SearchRowStroke.Transparency = 0.45
+SearchRowStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+SearchRowStroke.Parent = SearchRow
+
+local SearchBox = Instance.new("TextBox")
+SearchBox.Name = "SearchBox"
+SearchBox.Size = UDim2.new(1, -20, 1, 0)
+SearchBox.Position = UDim2.new(0, 10, 0, 0)
+SearchBox.BackgroundTransparency = 1
+SearchBox.Text = ""
+SearchBox.PlaceholderText = "Search panels..."
+SearchBox.PlaceholderColor3 = Theme.TextDim
+SearchBox.TextColor3 = Theme.Text
+SearchBox.TextSize = 11
+SearchBox.Font = Enum.Font.GothamSemibold
+SearchBox.TextXAlignment = Enum.TextXAlignment.Left
+SearchBox.ClearTextOnFocus = false
+SearchBox.Parent = SearchRow
+
+-- Search results dropdown
+local Dropdown = Instance.new("Frame")
+Dropdown.Name = "SearchDropdown"
+Dropdown.Size = UDim2.new(1, -16, 0, 0)
+Dropdown.Position = UDim2.new(0, 8, 0, 62)
+Dropdown.BackgroundColor3 = Theme.Background
+Dropdown.BorderSizePixel = 0
+Dropdown.Visible = false
+Dropdown.ZIndex = 10
+Dropdown.ClipsDescendants = true
+Dropdown.Parent = MainFrame
+
+local DropdownCorner = Instance.new("UICorner")
+DropdownCorner.CornerRadius = UDim.new(0, 8)
+DropdownCorner.Parent = Dropdown
+
+local DropdownStroke = Instance.new("UIStroke")
+DropdownStroke.Color = Theme.Stroke
+DropdownStroke.Thickness = 1
+DropdownStroke.Transparency = 0.25
+DropdownStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+DropdownStroke.Parent = Dropdown
+
+local DropdownList = Instance.new("UIListLayout")
+DropdownList.SortOrder = Enum.SortOrder.LayoutOrder
+DropdownList.Padding = UDim.new(0, 2)
+DropdownList.Parent = Dropdown
+
+SearchBox.Focused:Connect(function()
+	tween(SearchRowStroke, TWEEN_FAST, {Color = Theme.Accent})
+end)
+SearchBox.FocusLost:Connect(function()
+	tween(SearchRowStroke, TWEEN_FAST, {Color = Theme.Stroke})
+end)
+
+-- Master toggle-all button
+local MasterBtn = Instance.new("TextButton")
+MasterBtn.Name = "MasterToggle"
+MasterBtn.Size = UDim2.new(0, 72, 0, 22)
+MasterBtn.Position = UDim2.new(1, -80, 0, 38)
+MasterBtn.BackgroundColor3 = Theme.Accent
+MasterBtn.Text = "All ON"
+MasterBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+MasterBtn.TextSize = 10
+MasterBtn.Font = Enum.Font.GothamBold
+MasterBtn.AutoButtonColor = false
+MasterBtn.BorderSizePixel = 0
+MasterBtn.Parent = MainFrame
+
+local MasterCorner = Instance.new("UICorner")
+MasterCorner.CornerRadius = UDim.new(0, 6)
+MasterCorner.Parent = MasterBtn
+
+local MasterStroke = Instance.new("UIStroke")
+MasterStroke.Color = Theme.Stroke
+MasterStroke.Thickness = 1
+MasterStroke.Transparency = 0.35
+MasterStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+MasterStroke.Parent = MasterBtn
+
+MasterBtn.MouseEnter:Connect(function()
+	tween(MasterBtn, TWEEN_FAST, {BackgroundTransparency = 0.15})
+end)
+MasterBtn.MouseLeave:Connect(function()
+	tween(MasterBtn, TWEEN_FAST, {BackgroundTransparency = 0})
+end)
+
+-- Panel Sections
+local sections = {}
+local sectionOrder = {"Cash", "Machines", "Research", "Perks", "Tree", "Life", "Grid", "Crystal", "Platinum", "Prestige", "Monster", "Jewels", "Opal", "Stats", "Buttons"}
+
+for i, secName in ipairs(sectionOrder) do
+	local sec = Instance.new("Frame")
+	sec.Name = secName .. "Section"
+	sec.Size = UDim2.new(1, 0, 0, 0)
+	sec.BackgroundTransparency = 1
+	sec.Visible = false
+	sec.LayoutOrder = i
+	sec.Parent = Content
+
+	local list = Instance.new("UIListLayout")
+	list.SortOrder = Enum.SortOrder.LayoutOrder
+	list.Padding = UDim.new(0, 6)
+	list.Parent = sec
+
+	local pad = Instance.new("UIPadding")
+	pad.PaddingTop = UDim.new(0, 4)
+	pad.PaddingLeft = UDim.new(0, 2)
+	pad.PaddingRight = UDim.new(0, 2)
+	pad.PaddingBottom = UDim.new(0, 4)
+	pad.Parent = sec
+
+	sections[secName] = sec
+end
+
+-- Number Parsers
+local function parseFormattedNumber(str)
+	if not str or str == "" then return nil end
+	if type(str) == "number" then return str end
+
+	local cleanedStr = tostring(str):gsub("<[^>]-javascript:>", ""):gsub("<[^>]->", "")
+	if cleanedStr:upper():find("MAX") then
+		return nil
+	end
+
+	local clean = cleanedStr:gsub("[%$%,%s]", "")
+
+	local eNum = clean:match("([%d%.]+e%+?%d+)") or clean:match("([%d%.]+E%+?%d+)")
+	if eNum then
+		return tonumber(eNum)
+	end
+
+	local numStr, suffix = clean:match("^([%d%.]+)(%a*)$")
+	if not numStr then return tonumber(clean) end
+
+	local num = tonumber(numStr)
+	if not num then return nil end
+
+	suffix = suffix and suffix:upper() or ""
+	if suffix == "" then return num end
+
+	local multipliers = {
+		K = 1e3,
+		M = 1e6,
+		B = 1e9,
+		T = 1e12,
+		Q = 1e15, QA = 1e15, QUAD = 1e15,
+		QI = 1e18, QUIN = 1e18,
+		SX = 1e21, SEX = 1e21, SEXT = 1e21,
+		SP = 1e24, SEPT = 1e24,
+		OC = 1e27, O = 1e27, OCT = 1e27,
+		N = 1e30, NO = 1e30, NON = 1e30,
+		D = 1e33, DC = 1e33, DEC = 1e33, DE = 1e33,
+		UD = 1e36, UDE = 1e36, UDC = 1e36,
+		DD = 1e39, DDE = 1e39, DDC = 1e39,
+		TD = 1e42, TDE = 1e42, TDC = 1e42, TRD = 1e42,
+		QAD = 1e45, QADE = 1e45,
+		QID = 1e48, QIDE = 1e48,
+		SXD = 1e51, SXDE = 1e51,
+		SPD = 1e54, SPDE = 1e54,
+		OCD = 1e57, OCDE = 1e57,
+		NOD = 1e60, NODE = 1e60,
+		VG = 1e63, VGE = 1e63,
+		UVG = 1e66,
+		DVG = 1e69,
+		TVG = 1e72,
+		QAVG = 1e75, QIVG = 1e78, SXVG = 1e81, SPVG = 1e84, OCVG = 1e87, NOVG = 1e90,
+		TG = 1e93, UTG = 1e96, DTG = 1e99, TTG = 1e102, QATG = 1e105, QITG = 1e108,
+		SXTG = 1e111, SPTG = 1e114, OCTG = 1e117, NOTG = 1e120,
+		QG = 1e123, UQG = 1e126, DQG = 1e129, TQG = 1e132, QAQG = 1e135, QIQG = 1e138,
+		SXQG = 1e141, SPQG = 1e144, OCQG = 1e147, NOQG = 1e150,
+		QQ = 1e153, UQQ = 1e156, DQQ = 1e159, TQQ = 1e162, QAQQ = 1e165, QIQQ = 1e168,
+		SXQQ = 1e171, SPQQ = 1e174, OCQQ = 1e177, NOQQ = 1e180, QQQ = 1e183
+	}
+
+	if not multipliers[suffix] then
+		return nil
+	end
+	return num * multipliers[suffix]
+end
+
+-- How many decimals the Stats panel shows (2 -> 536.31SP). Change this to 3 for 536.310SP.
+local STAT_DECIMALS = 2
+
+local function formatShortNumber(val)
+	if not val or type(val) ~= "number" then return "0" end
+	local fmt = "%." .. STAT_DECIMALS .. "f"
+	if val < 1000 then
+		if val == math.floor(val) then return tostring(val) end
+		return string.format(fmt, val)
+	end
+
+	local suffixes = {
+		"K", "M", "B", "T", "QA", "QI", "SX", "SP", "OC", "NO", "DC",
+		"UD", "DD", "TD", "QAD", "QID", "SXD", "SPD", "OCD", "NOD", "VG",
+		"UVG", "DVG", "TVG", "QAVG", "QIVG", "SXVG", "SPVG", "OCVG", "NOVG", "TG",
+		"UTG", "DTG", "TTG", "QATG", "QITG", "SXTG", "SPTG", "OCTG", "NOTG", "qg",
+		"Uqg", "Dqg", "Tqg", "Qaqg", "Qiqg", "Sxqg", "Spqg", "Ocqg", "Noqg", "Qg",
+		"UQg", "DQg", "TQg", "QaQg", "QiQg", "SxQg", "SpQg", "OcQg", "NoQg", "Qq"
+	}
+
+	local exp = math.floor(math.log10(val) / 3)
+	if exp > #suffixes then
+		exp = #suffixes
+	end
+
+	local scaled = val / (10 ^ (exp * 3))
+
+	-- Rounding can push 999.999K up to "1000.00K"; roll that over to the next suffix
+	local rounded = tonumber(string.format(fmt, scaled))
+	if rounded >= 1000 and exp < #suffixes then
+		exp = exp + 1
+		scaled = val / (10 ^ (exp * 3))
+	end
+
+	return string.format(fmt, scaled) .. suffixes[exp]
+end
+
+-- Canvas Resize Helpers
+local function updateCanvasSize(section)
+	local layout = section:FindFirstChildOfClass("UIListLayout")
+	if layout then
+		local totalHeight = layout.AbsoluteContentSize.Y
+		section.Size = UDim2.new(1, 0, 0, totalHeight)
+		Content.CanvasSize = UDim2.new(0, 0, 0, totalHeight)
+	end
+end
+
+-- Tab System
+local Tabs = {}
+
+local function setActiveTab(tabBtn)
+	for _, t in ipairs(Tabs) do
+		local active = t.Button == tabBtn
+		t.Section.Visible = active
+		tween(t.Button, TWEEN_FAST, {
+			BackgroundColor3 = active and Theme.Accent or Theme.Element,
+			TextColor3 = active and Color3.fromRGB(255, 255, 255) or Theme.TextDim,
+		})
+		t.Stroke.Color = active and Theme.Accent or Theme.Stroke
+		if active then
+			updateCanvasSize(t.Section)
+		end
+	end
+end
+
+local function createPanelTab(name, text, section, order)
+	local Button = Instance.new("TextButton")
+	Button.Name = name
+	Button.LayoutOrder = order
+	Button.Size = UDim2.new(0, 56, 1, -4)
+	Button.BackgroundColor3 = Theme.Element
+	Button.Text = text
+	Button.TextColor3 = Theme.TextDim
+	Button.TextSize = 10
+	Button.Font = Enum.Font.GothamBold
+	Button.AutoButtonColor = false
+	Button.BorderSizePixel = 0
+	Button.Parent = PanelContainer
+
+	local TabCorner = Instance.new("UICorner")
+	TabCorner.CornerRadius = UDim.new(0, 6)
+	TabCorner.Parent = Button
+
+	local TabStroke = Instance.new("UIStroke")
+	TabStroke.Color = Theme.Stroke
+	TabStroke.Thickness = 1
+	TabStroke.Transparency = 0.35
+	TabStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+	TabStroke.Parent = Button
+
+	Button.MouseEnter:Connect(function()
+		if section.Visible then return end
+		tween(Button, TWEEN_FAST, {BackgroundColor3 = Theme.ElementHover})
+	end)
+	Button.MouseLeave:Connect(function()
+		if section.Visible then return end
+		tween(Button, TWEEN_FAST, {BackgroundColor3 = Theme.Element})
+	end)
+	Button.MouseButton1Click:Connect(function()
+		setActiveTab(Button)
+	end)
+
+	local tabData = {Button = Button, Section = section, Stroke = TabStroke}
+	table.insert(Tabs, tabData)
+	return tabData
+end
+
+local tabDefs = {
+	{"CashTab", "Cash", sections.Cash},
+	{"MachinesTab", "Machine", sections.Machines},
+	{"ResearchTab", "Research", sections.Research},
+	{"PerksTab", "Perks", sections.Perks},
+	{"TreeTab", "Tree", sections.Tree},
+	{"LifeTab", "Life", sections.Life},
+	{"GridTab", "Grid", sections.Grid},
+	{"CrystalTab", "Crystal", sections.Crystal},
+	{"PlatinumTab", "Plat", sections.Platinum},
+	{"PrestigeTab", "Prestige", sections.Prestige},
+	{"MonsterTab", "Monster", sections.Monster},
+	{"JewelsTab", "Jewels", sections.Jewels},
+	{"OpalTab", "Opal", sections.Opal},
+	{"StatsTab", "Stats", sections.Stats},
+	{"ButtonsTab", "Buttons", sections.Buttons},
+}
+for i, def in ipairs(tabDefs) do
+	createPanelTab(def[1], def[2], def[3], i)
+end
+
+-- Panel Search
+local panelIndex = {}
+for i, def in ipairs(tabDefs) do
+	table.insert(panelIndex, {label = def[2], key = def[3].Name, tab = Tabs[i]})
+end
+
+local searchBusy = false
+
+local function hideDropdown()
+	Dropdown.Visible = false
+	Dropdown.Size = UDim2.new(1, -16, 0, 0)
+end
+
+local function refreshSearch()
+	if searchBusy then return end
+
+	for _, child in ipairs(Dropdown:GetChildren()) do
+		if child:IsA("TextButton") or child:IsA("TextLabel") then
+			child:Destroy()
+		end
+	end
+
+	local q = SearchBox.Text:lower():gsub("^%s+", ""):gsub("%s+$", "")
+	if q == "" then
+		hideDropdown()
+		return
+	end
+
+	local matches = {}
+	for _, entry in ipairs(panelIndex) do
+		if entry.label:lower():find(q, 1, true) or entry.key:lower():find(q, 1, true) then
+			table.insert(matches, entry)
+		end
+	end
+
+	local rowH = 22
+	if #matches == 0 then
+		local none = Instance.new("TextLabel")
+		none.Size = UDim2.new(1, 0, 0, rowH)
+		none.BackgroundTransparency = 1
+		none.Text = "No panels found"
+		none.TextColor3 = Theme.TextDim
+		none.TextSize = 11
+		none.Font = Enum.Font.GothamSemibold
+		none.TextXAlignment = Enum.TextXAlignment.Left
+		none.LayoutOrder = 1
+		none.ZIndex = 11
+		none.Parent = Dropdown
+		matches = {{label = nil}}
+	end
+
+	for order, entry in ipairs(matches) do
+		if entry.label then
+			local btn = Instance.new("TextButton")
+			btn.Size = UDim2.new(1, -12, 0, rowH)
+			btn.Position = UDim2.new(0, 10, 0, 0)
+			btn.BackgroundColor3 = Theme.Element
+			btn.BackgroundTransparency = 1
+			btn.Text = entry.label
+			btn.TextColor3 = Theme.Text
+			btn.TextSize = 11
+			btn.Font = Enum.Font.GothamSemibold
+			btn.TextXAlignment = Enum.TextXAlignment.Left
+			btn.LayoutOrder = order
+			btn.ZIndex = 11
+			btn.Parent = Dropdown
+
+			btn.MouseEnter:Connect(function()
+				tween(btn, TWEEN_FAST, {BackgroundTransparency = 0})
+			end)
+			btn.MouseLeave:Connect(function()
+				tween(btn, TWEEN_FAST, {BackgroundTransparency = 1})
+			end)
+			btn.MouseButton1Click:Connect(function()
+				setActiveTab(entry.tab.Button)
+				searchBusy = true
+				SearchBox.Text = ""
+				searchBusy = false
+				SearchBox:ReleaseFocus()
+				hideDropdown()
+			end)
+		end
+	end
+
+	local shown = math.max(#matches, 1)
+	local h = math.min(shown * rowH + (shown - 1) * 2, 6 * rowH + 10)
+	Dropdown.Size = UDim2.new(1, -16, 0, h)
+	Dropdown.Visible = true
+end
+
+SearchBox:GetPropertyChangedSignal("Text"):Connect(refreshSearch)
+
+-- Toggle Component
+local AllToggles = {}
+local onAnyToggleChange = nil
+
+local function createToggle(parent, name, text, order)
+	local Toggle = {}
+	local state = false
+
+	local Row = Instance.new("TextButton")
+	Row.Name = name
+	Row.LayoutOrder = order or 0
+	Row.Size = UDim2.new(1, 0, 0, 36)
+	Row.BackgroundColor3 = Theme.Element
+	Row.Text = ""
+	Row.AutoButtonColor = false
+	Row.BorderSizePixel = 0
+	Row.ClipsDescendants = true
+	Row.Parent = parent
+
+	local RowCorner = Instance.new("UICorner")
+	RowCorner.CornerRadius = UDim.new(0, 8)
+	RowCorner.Parent = Row
+
+	local RowStroke = Instance.new("UIStroke")
+	RowStroke.Color = Theme.Stroke
+	RowStroke.Thickness = 1
+	RowStroke.Transparency = 0.45
+	RowStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+	RowStroke.Parent = Row
+
+	local Label = Instance.new("TextLabel")
+	Label.Name = "Label"
+	Label.Size = UDim2.new(1, -92, 1, 0)
+	Label.Position = UDim2.new(0, 12, 0, 0)
+	Label.BackgroundTransparency = 1
+	Label.Text = text
+	Label.TextColor3 = Theme.Text
+	Label.TextSize = 12
+	Label.Font = Enum.Font.GothamSemibold
+	Label.TextXAlignment = Enum.TextXAlignment.Left
+	Label.TextTruncate = Enum.TextTruncate.AtEnd
+	Label.Parent = Row
+
+	local Status = Instance.new("TextLabel")
+	Status.Name = "Status"
+	Status.Size = UDim2.new(0, 24, 1, 0)
+	Status.Position = UDim2.new(1, -76, 0, 0)
+	Status.BackgroundTransparency = 1
+	Status.Text = "OFF"
+	Status.TextColor3 = Theme.TextDim
+	Status.TextSize = 10
+	Status.Font = Enum.Font.GothamBold
+	Status.TextXAlignment = Enum.TextXAlignment.Right
+	Status.Parent = Row
+
+	local Track = Instance.new("Frame")
+	Track.Name = "Track"
+	Track.Size = UDim2.new(0, 40, 0, 20)
+	Track.Position = UDim2.new(1, -48, 0.5, -10)
+	Track.BackgroundColor3 = Theme.TrackOff
+	Track.BorderSizePixel = 0
+	Track.Parent = Row
+
+	local TrackCorner = Instance.new("UICorner")
+	TrackCorner.CornerRadius = UDim.new(1, 0)
+	TrackCorner.Parent = Track
+
+	local Knob = Instance.new("Frame")
+	Knob.Name = "Knob"
+	Knob.Size = UDim2.new(0, 14, 0, 14)
+	Knob.Position = UDim2.new(0, 3, 0.5, -7)
+	Knob.BackgroundColor3 = Color3.fromRGB(232, 232, 240)
+	Knob.BorderSizePixel = 0
+	Knob.Parent = Track
+
+	local KnobCorner = Instance.new("UICorner")
+	KnobCorner.CornerRadius = UDim.new(1, 0)
+	KnobCorner.Parent = Knob
+
+	local function render()
+		tween(Knob, TWEEN_MED, {
+			Position = state and UDim2.new(1, -17, 0.5, -7) or UDim2.new(0, 3, 0.5, -7),
+		})
+		tween(Track, TWEEN_MED, {
+			BackgroundColor3 = state and Theme.Success or Theme.TrackOff,
+		})
+		Status.Text = state and "ON" or "OFF"
+		Status.TextColor3 = state and Theme.Success or Theme.TextDim
+	end
+
+	Row.MouseEnter:Connect(function()
+		tween(Row, TWEEN_FAST, {BackgroundColor3 = Theme.ElementHover})
+	end)
+	Row.MouseLeave:Connect(function()
+		tween(Row, TWEEN_FAST, {BackgroundColor3 = Theme.Element})
+	end)
+	Row.MouseButton1Down:Connect(function()
+		tween(Row, TWEEN_FAST, {BackgroundColor3 = Theme.Element})
+	end)
+	Row.MouseButton1Up:Connect(function()
+		tween(Row, TWEEN_FAST, {BackgroundColor3 = Theme.ElementHover})
+	end)
+
+	Row.MouseButton1Click:Connect(function()
+		state = not state
+		render()
+		if Toggle.Changed then
+			Toggle.Changed(state)
+		end
+		if onAnyToggleChange then
+			onAnyToggleChange()
+		end
+	end)
+
+	Toggle.Frame = Row
+	Toggle.IsOn = function()
+		return state
+	end
+	Toggle.Set = function(newState)
+		state = newState and true or false
+		render()
+	end
+	Toggle.Flip = function()
+		state = not state
+		render()
+		if Toggle.Changed then
+			Toggle.Changed(state)
+		end
+		if onAnyToggleChange then
+			onAnyToggleChange()
+		end
+	end
+	table.insert(AllToggles, Toggle)
+	if onAnyToggleChange then
+		onAnyToggleChange()
+	end
+	return Toggle
+end
+
+-- Master All-On / All-Off
+local function anyToggleOff()
+	for _, t in ipairs(AllToggles) do
+		if not t.IsOn() then
+			return true
+		end
+	end
+	return false
+end
+
+local function refreshMaster()
+	if anyToggleOff() then
+		MasterBtn.Text = "All ON"
+		MasterBtn.BackgroundColor3 = Theme.Accent
+	else
+		MasterBtn.Text = "All OFF"
+		MasterBtn.BackgroundColor3 = Theme.Success
+	end
+end
+
+MasterBtn.MouseButton1Click:Connect(function()
+	local turnOn = anyToggleOff()
+	for _, t in ipairs(AllToggles) do
+		if t.IsOn() ~= turnOn then
+			t.Flip()
+		end
+	end
+	refreshMaster()
+end)
+
+onAnyToggleChange = refreshMaster
+refreshMaster()
+
+-- Stats Display (Stats panel)
+local function createStatLabel(name, text)
+	local Card = Instance.new("Frame")
+	Card.Name = name
+	Card.Size = UDim2.new(1, 0, 0, 28)
+	Card.BackgroundColor3 = Theme.Element
+	Card.BorderSizePixel = 0
+	Card.Parent = sections.Stats
+
+	local CardCorner = Instance.new("UICorner")
+	CardCorner.CornerRadius = UDim.new(0, 8)
+	CardCorner.Parent = Card
+
+	local CardStroke = Instance.new("UIStroke")
+	CardStroke.Color = Theme.Stroke
+	CardStroke.Thickness = 1
+	CardStroke.Transparency = 0.45
+	CardStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+	CardStroke.Parent = Card
+
+	local Accent = Instance.new("Frame")
+	Accent.Name = "Accent"
+	Accent.Size = UDim2.new(0, 3, 0, 14)
+	Accent.Position = UDim2.new(0, 0, 0.5, -7)
+	Accent.BackgroundColor3 = Theme.Accent
+	Accent.BorderSizePixel = 0
+	Accent.Parent = Card
+
+	local AccentCorner = Instance.new("UICorner")
+	AccentCorner.CornerRadius = UDim.new(0, 2)
+	AccentCorner.Parent = Accent
+
+	local Label = Instance.new("TextLabel")
+	Label.Name = "Label"
+	Label.Size = UDim2.new(1, -18, 1, 0)
+	Label.Position = UDim2.new(0, 12, 0, 0)
+	Label.BackgroundTransparency = 1
+	Label.Text = text
+	Label.TextColor3 = Theme.Text
+	Label.TextSize = 11
+	Label.Font = Enum.Font.GothamSemibold
+	Label.TextXAlignment = Enum.TextXAlignment.Left
+	Label.TextTruncate = Enum.TextTruncate.AtEnd
+	Label.Parent = Card
+
+	return Label, Accent
+end
+
+local EnergyLabel, EnergyAccent       = createStatLabel("EnergyLabel", "Energy: Loading...")
+local CrystalsLabel, CrystalsAccent   = createStatLabel("CrystalsLabel", "Crystals: Loading...")
+local MoneyLabel, MoneyAccent         = createStatLabel("MoneyLabel", "Money: Loading...")
+local LifeShardsLabel, ShardsAccent   = createStatLabel("LifeShardsLabel", "LifeShards: Loading...")
+local QuartzLabel, QuartzAccent       = createStatLabel("QuartzLabel", "Quartz: Loading...")
+local LogsLabel, LogsAccent           = createStatLabel("LogsLabel", "Logs: Loading...")
+local PlatinumLabel, PlatinumAccent   = createStatLabel("PlatinumLabel", "Platinum: Loading...")
+local ResearchLabel, ResearchAccent   = createStatLabel("ResearchLabel", "Research: Loading...")
+
+local function trackStat(statNames, displayLabel, prefix, labelColor, accentBar, hideUntilFound)
+	if accentBar then
+		accentBar.BackgroundColor3 = labelColor
+	end
+	if hideUntilFound and displayLabel.Parent then
+		displayLabel.Parent.Visible = false
+	end
+
+	task.spawn(function()
+		local function bindStat(obj)
+			local function update()
+				local rawVal
+				if obj:IsA("ValueBase") then
+					rawVal = obj.Value
+				elseif obj:IsA("TextLabel") or obj:IsA("TextButton") then
+					rawVal = obj.Text
+				end
+
+				local numVal
+				if type(rawVal) == "number" then
+					numVal = rawVal
+				else
+					numVal = parseFormattedNumber(tostring(rawVal)) or 0
+				end
+
+				displayLabel.Text = prefix .. ": " .. formatShortNumber(numVal)
+				if hideUntilFound and displayLabel.Parent then
+					displayLabel.Parent.Visible = true
+				end
+			end
+
+			if obj:IsA("ValueBase") then
+				obj:GetPropertyChangedSignal("Value"):Connect(update)
+			elseif obj:IsA("TextLabel") or obj:IsA("TextButton") then
+				obj:GetPropertyChangedSignal("Text"):Connect(update)
+			end
+			update()
+		end
+
+		local function findStat()
+			for _, containerName in ipairs({"leaderstats", "Stats", "Values", "Data"}) do
+				local container = LocalPlayer:FindFirstChild(containerName)
+				if container then
+					for _, name in ipairs(statNames) do
+						local found = container:FindFirstChild(name)
+						if found then
+							bindStat(found)
+							return true
+						end
+					end
+				end
+			end
+
+			for _, name in ipairs(statNames) do
+				local direct = LocalPlayer:FindFirstChild(name) or LocalPlayer:FindFirstChild(name, true)
+				if direct then
+					bindStat(direct)
+					return true
+				end
+			end
+			return false
+		end
+
+		while not findStat() and ScreenGui.Parent do
+			task.wait(1)
+		end
+	end)
+end
+
+trackStat({"Energy"}, EnergyLabel, "Energy", Color3.fromRGB(255, 105, 180), EnergyAccent)
+trackStat({"Crystals", "Crystal"}, CrystalsLabel, "Crystals", Color3.fromRGB(255, 105, 180), CrystalsAccent)
+trackStat({"Money", "Cash"}, MoneyLabel, "Money", Color3.fromRGB(60, 200, 120), MoneyAccent)
+trackStat({"LifeShards", "LifeShard", "Shards", "Shard"}, LifeShardsLabel, "LifeShards", Color3.fromRGB(60, 200, 120), ShardsAccent)
+trackStat({"Quartz"}, QuartzLabel, "Quartz", Color3.fromRGB(180, 120, 255), QuartzAccent)
+trackStat({"Logs", "Wood"}, LogsLabel, "Logs", Color3.fromRGB(200, 140, 80), LogsAccent)
+trackStat({"Platinum", "PlatinumShards"}, PlatinumLabel, "Platinum", Color3.fromRGB(180, 220, 255), PlatinumAccent)
+trackStat({"Research", "ResearchPoints", "RP"}, ResearchLabel, "Research", Color3.fromRGB(90, 200, 250), ResearchAccent)
+
+-- Extra Stats (one per panel currency). Each card stays hidden until the game has that stat.
+local extraStats = {
+	{"GoldenResearch", "Golden Research", {"GoldenResearch"},                              Color3.fromRGB(255, 200, 60)},
+	{"PerkPoints",     "Perk Points",     {"PerkPoints", "Perks", "Perk", "PP", "SkillPoints"}, Color3.fromRGB(150, 130, 255)},
+	{"Prestige",       "Prestige",        {"PrestigePoints", "Prestige", "PrestigeTokens", "PrestigeShards"}, Color3.fromRGB(255, 150, 90)},
+	{"Sap",            "Sap",             {"Sap", "TreeSap"},                              Color3.fromRGB(230, 170, 60)},
+	{"Roots",          "Roots",           {"Roots", "TreeRoots"},                          Color3.fromRGB(170, 120, 80)},
+	{"SapPerks",       "Sap Perks",       {"SapPerks"},                                    Color3.fromRGB(230, 170, 60)},
+	{"LogPerks",       "Log Perks",       {"LogPerks"},                                    Color3.fromRGB(200, 140, 80)},
+	{"CrystalPerks",   "Crystal Perks",   {"CrystalPerks"},                                Color3.fromRGB(255, 105, 180)},
+	{"CrystalShards",  "Crystal Shards",  {"CrystalShards"},                               Color3.fromRGB(120, 210, 255)},
+	{"Adamantium",     "Adamantium",      {"Adamantium"},                                  Color3.fromRGB(120, 200, 200)},
+	{"Californium",    "Californium",     {"Californium"},                                 Color3.fromRGB(255, 120, 120)},
+	{"Jewels",         "Jewels",          {"Jewels", "Jewel"},                             Color3.fromRGB(90, 220, 170)},
+	{"Opal",           "Opal",            {"Opal", "Opals", "OpalShards"},                 Color3.fromRGB(200, 180, 255)},
+	{"Fossil",         "Fossils",         {"Fossil", "Fossils"},                           Color3.fromRGB(190, 170, 130)},
+	{"Terraform",      "Terraform Gems",  {"TerraformGem", "Terraform"},                   Color3.fromRGB(100, 210, 110)},
+	{"Life",           "Life",            {"Life", "LifeEnergy"},                          Color3.fromRGB(60, 200, 120)},
+}
+
+for i, def in ipairs(extraStats) do
+	local key, title, names, color = def[1], def[2], def[3], def[4]
+	local lbl, accent = createStatLabel(key .. "Label", title .. ": Loading...")
+	lbl.Parent.LayoutOrder = 10 + i
+	trackStat(names, lbl, title, color, accent, true)
+end
+
+-- Cash Upgrades (Auto-detect all card IDs)
+local CashUpgradesToggle = createToggle(sections.Cash, "CashUpgradesToggle", "Auto Cash Upgrades", 1)
+
+CashUpgradesToggle.Changed = function(state)
+	if state then
+		task.spawn(function()
+			local upgradeRemote = ReplicatedStorage:WaitForChild("Events"):WaitForChild("UpgradeTree")
+			local treeCards = workspace:FindFirstChild("TreeCards") or workspace:FindFirstChild("UpgradeTreeCards") or workspace
+
+			local function getCardStatus(id)
+				local card = treeCards:FindFirstChild(tostring(id), true)
+				if not card then return true, nil, false end
+
+				local mainPart = card:FindFirstChild("MainPart")
+				local surfaceGui = mainPart and mainPart:FindFirstChild("SurfaceGui")
+				local hud = surfaceGui and surfaceGui:FindFirstChild("Hud")
+
+				local maxed = false
+				local price = nil
+				local isMoneyRelated = false
+
+				if hud then
+					local levelLabel = hud:FindFirstChild("Level")
+					if levelLabel and levelLabel:IsA("TextLabel") then
+						local lvlText = levelLabel.Text:upper()
+						if lvlText:find("MAX") then
+							maxed = true
+						else
+							local current, max = lvlText:match("(%d+)%s*/%s*(%d+)")
+							if current and max and tonumber(current) >= tonumber(max) then
+								maxed = true
+							end
+						end
+					end
+
+					local priceLabel = hud:FindFirstChild("Price")
+					if priceLabel and priceLabel:IsA("TextLabel") then
+						price = parseFormattedNumber(priceLabel.Text)
+					end
+
+					local titleLabel = hud:FindFirstChild("Title")
+					local descLabel = hud:FindFirstChild("Desc")
+
+					local titleText = (titleLabel and titleLabel:IsA("TextLabel")) and titleLabel.Text:upper() or ""
+					local descText = (descLabel and descLabel:IsA("TextLabel")) and descLabel.Text:upper() or ""
+
+					if titleText:find("MONEY") or titleText:find("CASH") or descText:find("MONEY") or descText:find("CASH") then
+						isMoneyRelated = true
+					end
+				end
+
+				return maxed, price, isMoneyRelated
+			end
+
+			local function getCurrentMoney()
+				local container = LocalPlayer:FindFirstChild("Stats") or LocalPlayer:FindFirstChild("leaderstats") or LocalPlayer
+				local moneyObj = container:FindFirstChild("Money", true)
+				if not moneyObj then return 0 end
+
+				local val = moneyObj.Value
+				if typeof(val) == "number" then
+					return val
+				elseif typeof(val) == "string" then
+					return parseFormattedNumber(val) or 0
+				end
+				return 0
+			end
+
+			-- Auto-detect all card IDs from the TreeCards folder
+			local function getAllCardIds()
+				local ids = {}
+				local cardsFolder = workspace:FindFirstChild("TreeCards") or workspace:FindFirstChild("UpgradeTreeCards")
+				if cardsFolder then
+					for _, child in ipairs(cardsFolder:GetChildren()) do
+						local num = tonumber(child.Name)
+						if num then
+							table.insert(ids, num)
+						end
+					end
+					table.sort(ids)
+				end
+				return ids
+			end
+
+			while CashUpgradesToggle.IsOn() and ScreenGui.Parent do
+				local allMaxed = true
+				local priorityList = {}
+				local normalList = {}
+
+				local allIds = getAllCardIds()
+				for _, id in ipairs(allIds) do
+					local maxed, price, isMoneyRelated = getCardStatus(id)
+					if not maxed then
+						allMaxed = false
+						if isMoneyRelated then
+							table.insert(priorityList, id)
+						else
+							table.insert(normalList, id)
+						end
+					end
+				end
+
+				local boughtMoneyUpgrade = false
+				for _, id in ipairs(priorityList) do
+					local maxed, price = getCardStatus(id)
+					local currentMoney = getCurrentMoney()
+					if not maxed and type(price) == "number" and price > 0 then
+						if currentMoney >= price then
+							upgradeRemote:FireServer(id)
+							boughtMoneyUpgrade = true
+							task.wait(0.15)
+						end
+					end
+				end
+
+				if not boughtMoneyUpgrade then
+					for _, id in ipairs(normalList) do
+						local maxed, price = getCardStatus(id)
+						local currentMoney = getCurrentMoney()
+						if not maxed and type(price) == "number" and price > 0 then
+							if currentMoney >= price then
+								upgradeRemote:FireServer(id)
+								task.wait(0.15)
+							end
+						end
+					end
+				end
+
+				if allMaxed then
+					CashUpgradesToggle.Set(false)
+					break
+				end
+				task.wait(0.15)
+			end
+		end)
+	end
+end
+
+-- Machine Panel
+local AutoMachineToggle = createToggle(sections.Machines, "AutoMachineToggle", "Auto Machine", 1)
+
+AutoMachineToggle.Changed = function(state)
+	if state then
+		task.spawn(function()
+			local machineUpgradeEvent = ReplicatedStorage:WaitForChild("Events"):WaitForChild("MachineUpgrade")
+			local moreMachinesEvent = machineUpgradeEvent:WaitForChild("MoreMachines")
+			local unlockMachineEvent = machineUpgradeEvent:WaitForChild("UnlockMachine")
+
+			local listPath = workspace:WaitForChild("Boards"):WaitForChild("Machine"):WaitForChild("Info"):WaitForChild("SurfaceGui"):WaitForChild("Info"):WaitForChild("List")
+			local WAIT_THRESHOLD = 30
+
+			local rejectedMachines = {}
+
+			local function rejectionActive()
+				for _, gui in ipairs(PlayerGui:GetDescendants()) do
+					if gui:IsA("TextLabel") and gui.Visible then
+						if gui.Text:upper():find("NOT ENOUGH") then
+							return true
+						end
+					end
+				end
+				return false
+			end
+
+			local function parseMachineNumber(text)
+				local parsed = parseFormattedNumber(text)
+				if type(parsed) == "number" then
+					return math.floor(parsed + 0.5)
+				end
+				return nil
+			end
+
+			local function getPlayerMoney()
+				local statsFolder = LocalPlayer:FindFirstChild("Stats")
+				if statsFolder then
+					local energy = statsFolder:FindFirstChild("Energy")
+					if energy and energy:IsA("ValueBase") then
+						if typeof(energy.Value) == "number" then
+							return energy.Value
+						elseif typeof(energy.Value) == "string" then
+							local parsed = parseMachineNumber(energy.Value)
+							if parsed then return parsed end
+						end
+					end
+				end
+
+				local leaderstatsFolder = LocalPlayer:FindFirstChild("leaderstats")
+				if leaderstatsFolder then
+					for _, child in ipairs(leaderstatsFolder:GetChildren()) do
+						if child:IsA("ValueBase") then
+							if typeof(child.Value) == "number" then
+								return child.Value
+							elseif typeof(child.Value) == "string" then
+								local parsed = parseMachineNumber(child.Value)
+								if parsed then return parsed end
+							end
+						end
+					end
+				end
+				return 0
+			end
+
+			local function getPlayerIncome()
+				local statsFolder = LocalPlayer:FindFirstChild("Stats")
+				if statsFolder then
+					local incomeObj = statsFolder:FindFirstChild("EnergyIncome") or statsFolder:FindFirstChild("Income") or statsFolder:FindFirstChild("Gain")
+					if incomeObj and incomeObj:IsA("ValueBase") then
+						if typeof(incomeObj.Value) == "number" then
+							return incomeObj.Value
+						elseif typeof(incomeObj.Value) == "string" then
+							return parseMachineNumber(incomeObj.Value) or 0
+						end
+					end
+				end
+				return 0
+			end
+
+			local function getTextValue(parentFolder, name)
+				if not parentFolder then return "N/A" end
+				local obj = parentFolder:FindFirstChild(name)
+				if obj then
+					if obj:IsA("TextLabel") or obj:IsA("TextButton") or obj:IsA("TextBox") then
+						return obj.Text
+					elseif obj:IsA("ValueBase") then
+						return tostring(obj.Value)
+					end
+				end
+				return "N/A"
+			end
+
+			while AutoMachineToggle.IsOn() and ScreenGui.Parent do
+				local currentMoney = getPlayerMoney()
+				local currentIncome = getPlayerIncome()
+
+				local bestAffordableOption = nil
+				local highestAffordableEfficiency = -1
+
+				local bestWaitOption = nil
+				local highestWaitEfficiency = -1
+
+				for i = 1, 20 do
+					if rejectedMachines[i] then continue end
+					local machineObj = listPath:FindFirstChild("Machine" .. i)
+
+					if machineObj then
+						local infoFolder = machineObj:FindFirstChild("Info")
+						local lockedFrame = infoFolder and infoFolder:FindFirstChild("Locked")
+						local isLocked = lockedFrame and lockedFrame:IsA("GuiObject") and lockedFrame.Visible
+
+						if infoFolder then
+							if isLocked then
+								local lockedText = getTextValue(lockedFrame, "LockedTxt")
+								if lockedText == "N/A" then lockedText = getTextValue(lockedFrame, "Locked") end
+								local lockedPrice = getTextValue(lockedFrame, "Price")
+
+								local upperLocked = lockedText:upper()
+								local isExpandRequirement = upperLocked:find("EXPAND") ~= nil
+								local isStageRequirement = upperLocked:find("STAGE") ~= nil
+								local isReachRequirement = upperLocked:find("REACH") ~= nil
+								local isZoneRequirement = upperLocked:find("ZONE") ~= nil or upperLocked:find("AREA") ~= nil
+								local isUnknownStatus = lockedText:find("%?%?%?") ~= nil
+								local prevMachineObj = i > 1 and listPath:FindFirstChild("Machine" .. (i - 1))
+								local prevInfoFolder = prevMachineObj and prevMachineObj:FindFirstChild("Info")
+								local prevLockedFrame = prevInfoFolder and prevInfoFolder:FindFirstChild("Locked")
+								local isPrevLocked = prevLockedFrame and prevLockedFrame:IsA("GuiObject") and prevLockedFrame.Visible
+
+								if not isExpandRequirement and not isStageRequirement and not isReachRequirement and not isZoneRequirement and not isUnknownStatus and not isPrevLocked then
+									local lockPriceVal = parseMachineNumber(lockedPrice)
+									if lockPriceVal and lockPriceVal > 0 then
+										local estimatedGain = (currentIncome > 0 and currentIncome or 1e6) * (i * 2)
+										local eff = estimatedGain / lockPriceVal
+
+										if currentMoney >= lockPriceVal then
+											if eff > highestAffordableEfficiency then
+												highestAffordableEfficiency = eff
+												bestAffordableOption = {type = "unlock", index = i, price = lockPriceVal}
+											end
+										elseif currentIncome > 0 then
+											local timeToWait = (lockPriceVal - currentMoney) / currentIncome
+											if timeToWait <= WAIT_THRESHOLD and eff > highestWaitEfficiency then
+												highestWaitEfficiency = eff
+												bestWaitOption = {type = "unlock", index = i, price = lockPriceVal}
+											end
+										end
+									end
+								end
+							else
+								local price1 = getTextValue(infoFolder, "Price1")
+								local price2 = getTextValue(infoFolder, "Price2")
+								local gain = getTextValue(infoFolder, "Gain")
+
+								local upgradeFrame = infoFolder:FindFirstChild("Upgrade")
+								local upgradeTitle1 = getTextValue(upgradeFrame, "Title1")
+								local upgradeTitle2 = getTextValue(upgradeFrame, "Title2")
+								local isUpgradeMaxed = (upgradeTitle1 == "MAXED" or upgradeTitle2 == "MAXED" or price1 == "MAXED")
+
+								local machinesFrame = infoFolder:FindFirstChild("Machines")
+								local machinesTitle1 = getTextValue(machinesFrame, "Title1")
+								local machinesTitle2 = getTextValue(machinesFrame, "Title2")
+								local isMachinesMaxed = (machinesTitle1 == "MAXED" or machinesTitle2 == "MAXED" or price2 == "MAXED")
+
+								local p1Val = parseMachineNumber(price1)
+								local p2Val = parseMachineNumber(price2)
+								local gainVal = parseMachineNumber(gain) or 1
+
+								if not isUpgradeMaxed and p1Val and p1Val > 0 then
+									local eff = gainVal / p1Val
+									if currentMoney >= p1Val then
+										if eff > highestAffordableEfficiency then
+											highestAffordableEfficiency = eff
+											bestAffordableOption = {type = "upgrade", index = i, price = p1Val}
+										end
+									elseif currentIncome > 0 then
+										local timeToWait = (p1Val - currentMoney) / currentIncome
+										if timeToWait <= WAIT_THRESHOLD and eff > highestWaitEfficiency then
+											highestWaitEfficiency = eff
+											bestWaitOption = {type = "upgrade", index = i, price = p1Val}
+										end
+									end
+								end
+
+								if not isMachinesMaxed and p2Val and p2Val > 0 then
+									local eff = (gainVal / p2Val) * 1.25
+									if currentMoney >= p2Val then
+										if eff > highestAffordableEfficiency then
+											highestAffordableEfficiency = eff
+											bestAffordableOption = {type = "more", index = i, price = p2Val}
+										end
+									elseif currentIncome > 0 then
+										local timeToWait = (p2Val - currentMoney) / currentIncome
+										if timeToWait <= WAIT_THRESHOLD and eff > highestWaitEfficiency then
+											highestWaitEfficiency = eff
+											bestWaitOption = {type = "more", index = i, price = p2Val}
+										end
+									end
+								end
+							end
+						end
+					end
+				end
+
+				local shouldWait = false
+				if bestWaitOption then
+					if not bestAffordableOption then
+						shouldWait = true
+					elseif highestWaitEfficiency > (highestAffordableEfficiency * 1.3) then
+						shouldWait = true
+					end
+				end
+
+				if not shouldWait and bestAffordableOption then
+					local chosenIndex = bestAffordableOption.index
+					if not rejectedMachines[chosenIndex] then
+						local clearGuard = 0
+						while rejectionActive() and clearGuard < 25 do
+							task.wait(0.2)
+							clearGuard = clearGuard + 1
+						end
+
+						print(("[AutoMachine] Firing %s on Machine%d (price %s | money %s)"):format(
+							bestAffordableOption.type,
+							chosenIndex,
+							tostring(bestAffordableOption.price),
+							tostring(currentMoney)
+						))
+
+						if bestAffordableOption.type == "upgrade" then
+							machineUpgradeEvent:FireServer(chosenIndex, true)
+						elseif bestAffordableOption.type == "more" then
+							moreMachinesEvent:FireServer(chosenIndex)
+						elseif bestAffordableOption.type == "unlock" then
+							unlockMachineEvent:FireServer(chosenIndex)
+						end
+
+						task.wait(0.4)
+						if rejectionActive() then
+							rejectedMachines[chosenIndex] = true
+							print(("[AutoMachine] Machine%d rejected by the game -> blacklisted"):format(chosenIndex))
+						end
+					end
+				end
+
+				task.wait(0.3)
+			end
+		end)
+	end
+end
+
+local AutoMineToggle = createToggle(sections.Machines, "AutoMineToggle", "Auto Mine", 2)
+
+AutoMineToggle.Changed = function(state)
+	if state then
+		task.spawn(function()
+			local mineRemote = LocalPlayer:WaitForChild("GameplayEvents"):WaitForChild("Mining"):WaitForChild("MineOre")
+
+			while AutoMineToggle.IsOn() and ScreenGui.Parent do
+				for i = 1, 5 do
+					if not AutoMineToggle.IsOn() then break end
+					mineRemote:FireServer(i)
+					task.wait(0.01)
+				end
+				task.wait(0.01)
+			end
+		end)
+	end
+end
+
+-- Tree Panel (Auto-detect all Upgrade# cards)
+-- Fires as long as you're within this many studs of Workspace.Misc2.TreeRadius
+local TREE_FIRE_RADIUS = 20
+
+local CutTreeHolder = Instance.new("Frame")
+CutTreeHolder.Name = "CutTreeHolder"
+CutTreeHolder.LayoutOrder = 1
+CutTreeHolder.Size = UDim2.new(1, 0, 0, 36)
+CutTreeHolder.BackgroundTransparency = 1
+CutTreeHolder.Parent = sections.Tree
+
+local AutoCutTreeToggle = createToggle(CutTreeHolder, "AutoCutTreeToggle", "Auto Cut Tree", 1)
+AutoCutTreeToggle.Frame.Size = UDim2.new(1, -72, 1, 0)
+
+local TPTreeBtn = Instance.new("TextButton")
+TPTreeBtn.Name = "TPTreeButton"
+TPTreeBtn.Size = UDim2.new(0, 66, 1, 0)
+TPTreeBtn.Position = UDim2.new(1, -66, 0, 0)
+TPTreeBtn.BackgroundColor3 = Theme.Accent
+TPTreeBtn.Text = "TP to Tree"
+TPTreeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+TPTreeBtn.TextSize = 10
+TPTreeBtn.Font = Enum.Font.GothamBold
+TPTreeBtn.AutoButtonColor = false
+TPTreeBtn.BorderSizePixel = 0
+TPTreeBtn.Parent = CutTreeHolder
+
+local TPTreeCorner = Instance.new("UICorner")
+TPTreeCorner.CornerRadius = UDim.new(0, 8)
+TPTreeCorner.Parent = TPTreeBtn
+
+TPTreeBtn.MouseEnter:Connect(function()
+	tween(TPTreeBtn, TWEEN_FAST, {BackgroundTransparency = 0.15})
+end)
+TPTreeBtn.MouseLeave:Connect(function()
+	tween(TPTreeBtn, TWEEN_FAST, {BackgroundTransparency = 0})
+end)
+
+local CutTreeStatusLabel = Instance.new("TextLabel")
+CutTreeStatusLabel.Name = "CutTreeStatus"
+CutTreeStatusLabel.LayoutOrder = 2
+CutTreeStatusLabel.Size = UDim2.new(1, 0, 0, 16)
+CutTreeStatusLabel.BackgroundTransparency = 1
+CutTreeStatusLabel.Text = ""
+CutTreeStatusLabel.TextColor3 = Color3.fromRGB(232, 105, 105)
+CutTreeStatusLabel.TextSize = 10
+CutTreeStatusLabel.Font = Enum.Font.GothamSemibold
+CutTreeStatusLabel.TextXAlignment = Enum.TextXAlignment.Left
+CutTreeStatusLabel.TextTruncate = Enum.TextTruncate.AtEnd
+CutTreeStatusLabel.Visible = false
+CutTreeStatusLabel.Parent = sections.Tree
+
+-- Resolves Workspace.Misc2.TreeRadius (falls back to the old TreeCutting part)
+local function getTreeAnchorPosition()
+	local misc = workspace:FindFirstChild("Misc2")
+	local obj = misc and misc:FindFirstChild("TreeRadius")
+	if obj then
+		if obj:IsA("BasePart") then
+			return obj.Position
+		elseif obj:IsA("Model") then
+			return obj:GetPivot().Position
+		else
+			local inner = obj:FindFirstChildWhichIsA("BasePart", true)
+			if inner then return inner.Position end
+		end
+	end
+
+	local boards = workspace:FindFirstChild("Boards")
+	local cutting = boards and boards:FindFirstChild("TreeCutting")
+	local part = cutting and cutting:FindFirstChild("Part")
+	if part and part:IsA("BasePart") then
+		return part.Position
+	end
+	return nil
+end
+
+TPTreeBtn.MouseButton1Click:Connect(function()
+	local character = LocalPlayer.Character
+	local hrp = character and character:FindFirstChild("HumanoidRootPart")
+	local pos = getTreeAnchorPosition()
+
+	if hrp and pos then
+		hrp.AssemblyLinearVelocity = Vector3.zero
+		hrp.CFrame = CFrame.new(pos + Vector3.new(0, 4, 0))
+		TPTreeBtn.Text = "Teleported!"
+	else
+		TPTreeBtn.Text = "Not found"
+	end
+	task.delay(1, function()
+		if TPTreeBtn.Parent then
+			TPTreeBtn.Text = "TP to Tree"
+		end
+	end)
+end)
+
+AutoCutTreeToggle.Changed = function(state)
+	if state then
+		task.spawn(function()
+			local cutTreeRemote = ReplicatedStorage:WaitForChild("Events"):WaitForChild("CutTree")
+
+			while AutoCutTreeToggle.IsOn() and ScreenGui.Parent do
+				local character = LocalPlayer.Character
+				local hrp = character and character:FindFirstChild("HumanoidRootPart")
+				local treePos = getTreeAnchorPosition()
+
+				if hrp and treePos then
+					local distance = (hrp.Position - treePos).Magnitude
+					if distance <= TREE_FIRE_RADIUS then
+						cutTreeRemote:FireServer()
+						CutTreeStatusLabel.Visible = false
+					else
+						CutTreeStatusLabel.Text = "Can't Cut Tree - Too far away"
+						CutTreeStatusLabel.Visible = true
+					end
+				else
+					CutTreeStatusLabel.Text = "Can't Cut Tree - Too far away"
+					CutTreeStatusLabel.Visible = true
+				end
+				task.wait(0.1)
+			end
+			CutTreeStatusLabel.Visible = false
+		end)
+	else
+		CutTreeStatusLabel.Visible = false
+	end
+end
+
+local AutoUpgradeTreeToggle = createToggle(sections.Tree, "AutoUpgradeTreeToggle", "Auto Upgrade Tree", 3)
+
+AutoUpgradeTreeToggle.Changed = function(state)
+	if state then
+		task.spawn(function()
+			local function checkIsMaxed(progressText)
+				if not progressText or progressText == "" or progressText == "N/A" then
+					return false
+				end
+
+				local upperText = progressText:upper()
+				if upperText:find("MAX") then
+					return true
+				end
+
+				local current, maxVal = progressText:match("(%d+)%s*/%s*(%d+)")
+				if current and maxVal then
+					local cNum = tonumber(current)
+					local mNum = tonumber(maxVal)
+					if cNum and mNum and cNum >= mNum then
+						return true
+					end
+				end
+
+				return false
+			end
+
+			local function getCurrentLogs()
+				local statsFolder = LocalPlayer:FindFirstChild("Stats")
+				local logsValue = statsFolder and statsFolder:FindFirstChild("Logs")
+				if logsValue then
+					if typeof(logsValue.Value) == "number" then
+						return logsValue.Value
+					elseif typeof(logsValue.Value) == "string" then
+						return parseFormattedNumber(logsValue.Value) or 0
+					end
+				end
+				return 0
+			end
+
+			local TreeUpgradeEvent = ReplicatedStorage:FindFirstChild("Events")
+				and ReplicatedStorage.Events:FindFirstChild("CutTree")
+				and ReplicatedStorage.Events.CutTree:FindFirstChild("TreeUpgrade")
+
+			while AutoUpgradeTreeToggle.IsOn() and ScreenGui.Parent do
+				local currentLogs = getCurrentLogs()
+
+				local listFolder = workspace:FindFirstChild("Boards")
+					and workspace.Boards:FindFirstChild("TreeCutting")
+					and workspace.Boards.TreeCutting:FindFirstChild("TreeUpgrades")
+					and workspace.Boards.TreeCutting.TreeUpgrades:FindFirstChild("SurfaceGui")
+					and workspace.Boards.TreeCutting.TreeUpgrades.SurfaceGui:FindFirstChild("Info")
+					and workspace.Boards.TreeCutting.TreeUpgrades.SurfaceGui.Info:FindFirstChild("List")
+
+				if listFolder and TreeUpgradeEvent then
+					-- Auto-detect all Upgrade# cards instead of hardcoding 1-13
+					local cards = listFolder:GetChildren()
+					table.sort(cards, function(a, b)
+						local na = tonumber(a.Name:match("%d+")) or math.huge
+						local nb = tonumber(b.Name:match("%d+")) or math.huge
+						return na < nb
+					end)
+
+					for _, upgradeItem in ipairs(cards) do
+						if not AutoUpgradeTreeToggle.IsOn() then break end
+						
+						local i = tonumber(upgradeItem.Name:match("%d+"))
+						if not i or upgradeItem.Name:sub(1, 7) ~= "Upgrade" then continue end
+						
+						local innerFrame = upgradeItem:FindFirstChild("Frame")
+
+						if innerFrame then
+							local lockedObj = innerFrame:FindFirstChild("Locked")
+							local isLocked = lockedObj and lockedObj.Visible == true
+
+							if not isLocked then
+								local sourceProgress = innerFrame:FindFirstChild("Progress")
+								local sourcePrice = innerFrame:FindFirstChild("Price")
+
+								local progressText = sourceProgress and sourceProgress.Text or ""
+								local priceText = sourcePrice and sourcePrice.Text or ""
+
+								local isMaxed = checkIsMaxed(progressText)
+								local rawPrice = parseFormattedNumber(priceText)
+
+								if not isMaxed and rawPrice and currentLogs >= rawPrice then
+									TreeUpgradeEvent:FireServer(i, true)
+									task.wait(0.05)
+								end
+							end
+						end
+					end
+				end
+				task.wait(0.3)
+			end
+		end)
+	end
+end
+
+-- Grid Panel
+local AutoMergeToggle = createToggle(sections.Grid, "AutoMergeToggle", "Auto Merge", 1)
+
+AutoMergeToggle.Changed = function(state)
+	if state then
+		task.spawn(function()
+			local mergeRemote = LocalPlayer:WaitForChild("GameplayEvents"):WaitForChild("Grid"):WaitForChild("MergeObject")
+			local deleteRemote = LocalPlayer:WaitForChild("GameplayEvents"):WaitForChild("Grid"):WaitForChild("DeleteObject")
+
+			while AutoMergeToggle.IsOn() and ScreenGui.Parent do
+				local boards = workspace:FindFirstChild("Boards")
+				local crystalGrid = boards and boards:FindFirstChild("CrystalGrid")
+
+				if crystalGrid then
+					local levelGroups = {}
+					local numericLevels = {}
+
+					for i = 1, 25 do
+						local node = crystalGrid:FindFirstChild(tostring(i))
+						if node then
+							local gridLevel = node:FindFirstChild("GridLevel")
+							local levelLabel = gridLevel and gridLevel:FindFirstChild("Level")
+							if levelLabel and levelLabel:IsA("TextLabel") then
+								local lvlText = levelLabel.Text
+								if lvlText and lvlText ~= "" and lvlText ~= "0" and lvlText ~= "Max" then
+									local numLvl = parseFormattedNumber(lvlText)
+									if numLvl then
+										if not levelGroups[numLvl] then
+											levelGroups[numLvl] = {}
+											table.insert(numericLevels, numLvl)
+										end
+										table.insert(levelGroups[numLvl], i)
+									end
+								end
+							end
+						end
+					end
+
+					table.sort(numericLevels)
+
+					for _, lvlNum in ipairs(numericLevels) do
+						local gridList = levelGroups[lvlNum]
+						while #gridList >= 2 do
+							if not AutoMergeToggle.IsOn() then break end
+							local sourceGrid = table.remove(gridList)
+							local targetGrid = table.remove(gridList)
+							mergeRemote:FireServer(sourceGrid, targetGrid)
+							task.wait(0.08)
+						end
+					end
+
+					if #numericLevels > 0 then
+						local lowestLvl = numericLevels[1]
+						local lowestGrids = levelGroups[lowestLvl]
+
+						local totalOccupied = 0
+						for _, lvlNum in ipairs(numericLevels) do
+							totalOccupied = totalOccupied + #levelGroups[lvlNum]
+						end
+
+						if #lowestGrids == 1 and totalOccupied >= 3 then
+							local gridToDelete = lowestGrids[1]
+
+							task.wait(0.1)
+
+							local node = crystalGrid:FindFirstChild(tostring(gridToDelete))
+							local gridLevel = node and node:FindFirstChild("GridLevel")
+							local levelLabel = gridLevel and gridLevel:FindFirstChild("Level")
+							if levelLabel and levelLabel:IsA("TextLabel") then
+								local currentLvl = parseFormattedNumber(levelLabel.Text)
+								if currentLvl == lowestLvl then
+									deleteRemote:FireServer(gridToDelete)
+								end
+							end
+						end
+					end
+				end
+				task.wait(0.2)
+			end
+		end)
+	end
+end
+
+local GridUpgradesToggle = createToggle(sections.Grid, "GridUpgradesToggle", "Grid Upgrades", 2)
+
+GridUpgradesToggle.Changed = function(state)
+	if state then
+		task.spawn(function()
+			local mergeUpgradesEvent = ReplicatedStorage:WaitForChild("Events"):WaitForChild("MergeUpgrades")
+
+			local currentQuartzValue = 0
+			local stats = LocalPlayer:FindFirstChild("Stats")
+			if stats then
+				local quartz = stats:FindFirstChild("Quartz")
+				if quartz then
+					if type(quartz.Value) == "number" then
+						currentQuartzValue = quartz.Value
+					else
+						currentQuartzValue = parseFormattedNumber(tostring(quartz.Value)) or 0
+					end
+					quartz:GetPropertyChangedSignal("Value"):Connect(function()
+						if type(quartz.Value) == "number" then
+							currentQuartzValue = quartz.Value
+						else
+							currentQuartzValue = parseFormattedNumber(tostring(quartz.Value)) or 0
+						end
+					end)
+				end
+			end
+
+			local trackedData = {}
+
+			local function monitorUpgradeFrame(upgradeFrame)
+				if not upgradeFrame:IsA("GuiObject") then return end
+				local index = tonumber(upgradeFrame.Name:match("%d+"))
+				if not index then return end
+
+				if not trackedData[index] then
+					trackedData[index] = { Price = 0, IsMaxed = false }
+				end
+
+				local function checkText(label)
+					if not label or not label:IsA("TextLabel") then return end
+					local rawText = label.Text
+					if label.Name == "Price" then
+						trackedData[index].Price = parseFormattedNumber(rawText) or 0
+					elseif label.Name == "Progress" then
+						local lowerText = rawText:lower()
+						if lowerText:find("max") or lowerText:find("completed") then
+							trackedData[index].IsMaxed = true
+						else
+							local current, total = rawText:match("(%d+)%s*/%s*(%d+)")
+							if current and total and tonumber(current) >= tonumber(total) then
+								trackedData[index].IsMaxed = true
+							else
+								trackedData[index].IsMaxed = false
+							end
+						end
+					end
+				end
+
+				for _, descendant in ipairs(upgradeFrame:GetDescendants()) do
+					if descendant:IsA("TextLabel") then
+						checkText(descendant)
+						descendant:GetPropertyChangedSignal("Text"):Connect(function()
+							checkText(descendant)
+						end)
+					end
+				end
+
+				upgradeFrame.DescendantAdded:Connect(function(descendant)
+					if descendant:IsA("TextLabel") then
+						checkText(descendant)
+						descendant:GetPropertyChangedSignal("Text"):Connect(function()
+							checkText(descendant)
+						end)
+					end
+				end)
+			end
+
+			local listContainer = workspace:FindFirstChild("Boards")
+				and workspace.Boards:FindFirstChild("CrystalGrid")
+				and workspace.Boards.CrystalGrid:FindFirstChild("GridUpgrades")
+				and workspace.Boards.CrystalGrid.GridUpgrades:FindFirstChild("SurfaceGui")
+				and workspace.Boards.CrystalGrid.GridUpgrades.SurfaceGui:FindFirstChild("Info")
+				and workspace.Boards.CrystalGrid.GridUpgrades.SurfaceGui.Info:FindFirstChild("List")
+
+			if listContainer then
+				for _, child in ipairs(listContainer:GetChildren()) do
+					monitorUpgradeFrame(child)
+				end
+				listContainer.ChildAdded:Connect(monitorUpgradeFrame)
+			end
+
+			while GridUpgradesToggle.IsOn() and ScreenGui.Parent do
+				for index, data in pairs(trackedData) do
+					if not GridUpgradesToggle.IsOn() then break end
+					if not data.IsMaxed and currentQuartzValue >= data.Price and data.Price > 0 then
+						mergeUpgradesEvent:FireServer(index, true)
+						task.wait(0.1)
+					end
+				end
+				task.wait(0.4)
+			end
+		end)
+	end
+end
+
+-- Crystal Panel (Auto-detect all Upgrade# cards)
+local AutoCrystalToggle = createToggle(sections.Crystal, "AutoCrystalToggle", "Auto Crystal Upgrade", 1)
+
+AutoCrystalToggle.Changed = function(state)
+	if state then
+		task.spawn(function()
+			local currentCrystals = 0
+
+			local function bindCrystalObject(obj)
+				local function update()
+					local rawVal
+					if obj:IsA("ValueBase") then
+						rawVal = obj.Value
+					elseif obj:IsA("TextLabel") or obj:IsA("TextButton") then
+						rawVal = obj.Text
+					end
+
+					if type(rawVal) == "number" then
+						currentCrystals = rawVal
+					else
+						currentCrystals = parseFormattedNumber(tostring(rawVal)) or 0
+					end
+				end
+
+				if obj:IsA("ValueBase") then
+					obj:GetPropertyChangedSignal("Value"):Connect(update)
+				elseif obj:IsA("TextLabel") or obj:IsA("TextButton") then
+					obj:GetPropertyChangedSignal("Text"):Connect(update)
+				end
+				update()
+			end
+
+			local function findCrystals()
+				for _, containerName in ipairs({"leaderstats", "Stats", "Values", "Data"}) do
+					local container = LocalPlayer:FindFirstChild(containerName)
+					if container then
+						local found = container:FindFirstChild("Crystals") or container:FindFirstChild("Crystal")
+						if found then
+							bindCrystalObject(found)
+							return true
+						end
+					end
+				end
+
+				local direct = LocalPlayer:FindFirstChild("Crystals") or LocalPlayer:FindFirstChild("Crystal")
+				if direct then
+					bindCrystalObject(direct)
+					return true
+				end
+
+				local deep = LocalPlayer:FindFirstChild("Crystals", true) or LocalPlayer:FindFirstChild("Crystal", true)
+				if deep then
+					bindCrystalObject(deep)
+					return true
+				end
+
+				return false
+			end
+
+			if not findCrystals() then
+				task.spawn(function()
+					while AutoCrystalToggle.IsOn() and not findCrystals() do
+						task.wait(1)
+					end
+				end)
+			end
+
+			local listFolder = workspace:WaitForChild("Boards"):WaitForChild("Crystalization"):WaitForChild("CrystalUpgrades"):WaitForChild("SurfaceGui"):WaitForChild("Info"):WaitForChild("List")
+			local upgradeCards = {}
+
+			local function createCardMonitor(card)
+				local index = tonumber(card.Name:match("%d+"))
+				local cardData = {
+					Card = card,
+					Index = index,
+					ProgressText = "",
+					PriceValue = 0,
+					IsMaxed = false,
+					IsLocked = false
+				}
+				if index then
+					upgradeCards[index] = cardData
+				end
+
+				local innerFrame = card:FindFirstChild("Frame")
+				local lockedObj = (innerFrame and innerFrame:FindFirstChild("Locked")) or card:FindFirstChild("Locked")
+
+				if innerFrame then
+					local progressObj = innerFrame:FindFirstChild("Progress")
+					local priceObj = innerFrame:FindFirstChild("Price")
+
+					local function updateText()
+						cardData.IsLocked = lockedObj and lockedObj:IsA("GuiObject") and lockedObj.Visible == true
+
+						local progressText = "N/A"
+						local priceText = "N/A"
+
+						if progressObj then
+							if progressObj:IsA("TextLabel") or progressObj:IsA("TextButton") then
+								progressText = progressObj.Text
+							elseif progressObj:IsA("ValueBase") then
+								progressText = tostring(progressObj.Value)
+							end
+						end
+
+						if priceObj then
+							if priceObj:IsA("TextLabel") or priceObj:IsA("TextButton") then
+								priceText = priceObj.Text
+							elseif priceObj:IsA("ValueBase") then
+								priceText = tostring(priceObj.Value)
+							end
+						end
+
+						cardData.ProgressText = progressText
+
+						if priceObj and priceObj:IsA("ValueBase") and type(priceObj.Value) == "number" then
+							cardData.PriceValue = priceObj.Value
+						else
+							cardData.PriceValue = parseFormattedNumber(priceText) or 0
+						end
+
+						local currentLvl, maxLvl = progressText:match("(%d+)/(%d+)")
+						if currentLvl and maxLvl and tonumber(currentLvl) >= tonumber(maxLvl) then
+							cardData.IsMaxed = true
+						elseif progressText:lower():find("max") then
+							cardData.IsMaxed = true
+						else
+							cardData.IsMaxed = false
+						end
+					end
+
+					if progressObj then
+						if progressObj:IsA("TextLabel") or progressObj:IsA("TextButton") then
+							progressObj:GetPropertyChangedSignal("Text"):Connect(updateText)
+						elseif progressObj:IsA("ValueBase") then
+							progressObj:GetPropertyChangedSignal("Value"):Connect(updateText)
+						end
+					end
+
+					if priceObj then
+						if priceObj:IsA("TextLabel") or priceObj:IsA("TextButton") then
+							priceObj:GetPropertyChangedSignal("Text"):Connect(updateText)
+						elseif priceObj:IsA("ValueBase") then
+							priceObj:GetPropertyChangedSignal("Value"):Connect(updateText)
+						end
+					end
+
+					if lockedObj then
+						lockedObj:GetPropertyChangedSignal("Visible"):Connect(updateText)
+					end
+
+					updateText()
+				end
+
+				card.DescendantAdded:Connect(function(descendant)
+					if descendant:IsA("GuiObject") and descendant.Name == "Locked" then
+						lockedObj = descendant
+						descendant:GetPropertyChangedSignal("Visible"):Connect(function()
+							cardData.IsLocked = descendant.Visible == true
+						end)
+						cardData.IsLocked = descendant.Visible == true
+					end
+				end)
+			end
+
+			for _, child in ipairs(listFolder:GetChildren()) do
+				if child:IsA("GuiObject") or child:IsA("LayerCollector") then
+					createCardMonitor(child)
+				end
+			end
+
+			listFolder.ChildAdded:Connect(function(child)
+				if child:IsA("GuiObject") or child:IsA("LayerCollector") then
+					createCardMonitor(child)
+				end
+			end)
+
+			local upgradeRemote = ReplicatedStorage:WaitForChild("Events"):WaitForChild("CollectCrystal"):WaitForChild("CrystalUpgrade")
+
+			-- Auto-detect all Upgrade# cards from the monitored cards table
+			local indices = {}
+			for idx in pairs(upgradeCards) do
+				table.insert(indices, idx)
+			end
+			table.sort(indices)
+
+			while AutoCrystalToggle.IsOn() and ScreenGui.Parent do
+				task.wait(0.2)
+				if AutoCrystalToggle.IsOn() then
+					for _, i in ipairs(indices) do
+						if not AutoCrystalToggle.IsOn() then break end
+						local data = upgradeCards[i]
+						if data and not data.IsMaxed and not data.IsLocked and data.PriceValue > 0 then
+							if currentCrystals >= data.PriceValue then
+								upgradeRemote:FireServer(i, true)
+								task.wait(0.1)
+							end
+						end
+					end
+				end
+			end
+		end)
+	end
+end
+
+local AutoShardToggle = createToggle(sections.Crystal, "ShardToggle", "Auto Click Shard", 2)
+
+AutoShardToggle.Changed = function(state)
+	if state then
+		task.spawn(function()
+			local gameplayEvents = LocalPlayer:WaitForChild("GameplayEvents")
+			local crystalFolder = gameplayEvents:WaitForChild("Crystal")
+			local boostShardRemote = crystalFolder:WaitForChild("BoostShard")
+
+			while AutoShardToggle.IsOn() and ScreenGui.Parent do
+				boostShardRemote:FireServer()
+				task.wait(0.1)
+			end
+		end)
+	end
+end
+
+-- Platinum Panel
+local PlatinumUpgradesToggle = createToggle(sections.Platinum, "PlatinumUpgradesToggle", "Platinum Upgrades", 1)
+
+PlatinumUpgradesToggle.Changed = function(state)
+	if state then
+		task.spawn(function()
+			local platRemote = ReplicatedStorage:WaitForChild("Events"):WaitForChild("CollectCrystal"):WaitForChild("PlatinumUpgrade")
+
+			local function getPlatinumFolder()
+				local boards = workspace:FindFirstChild("Boards")
+				local plat = boards and boards:FindFirstChild("Platinum")
+				local platUpgrades = plat and plat:FindFirstChild("PlatinumUpgrades")
+				local surfaceGui = platUpgrades and platUpgrades:FindFirstChild("SurfaceGui")
+				local info = surfaceGui and surfaceGui:FindFirstChild("Info")
+				return info and info:FindFirstChild("List")
+			end
+
+			local function getPlayerPlatinum()
+				local statsFolder = LocalPlayer:FindFirstChild("Stats") or LocalPlayer:FindFirstChild("leaderstats") or LocalPlayer
+				local platObj = statsFolder:FindFirstChild("Platinum", true) or statsFolder:FindFirstChild("PlatinumShards", true)
+				if platObj then
+					if typeof(platObj.Value) == "number" then
+						return platObj.Value
+					elseif typeof(platObj.Value) == "string" then
+						return parseFormattedNumber(platObj.Value) or 0
+					end
+				end
+				return 0
+			end
+
+			local function isPlatinumUpgradeMaxed(folder)
+				local lockedObj = folder:FindFirstChild("Locked")
+				if lockedObj and lockedObj.Visible then
+					return true
+				end
+
+				local levelObj = folder:FindFirstChild("Level")
+				local levelText = (levelObj and levelObj:IsA("TextLabel")) and levelObj.Text or (levelObj and tostring(levelObj.Value))
+				if not levelText then return false end
+
+				if levelText:upper():find("MAX") then
+					return true
+				end
+
+				local current, max = levelText:match("(%d+)/(%d+)")
+				if current and max and tonumber(current) >= tonumber(max) then
+					return true
+				end
+
+				return false
+			end
+
+			local function getPlatinumPrice(folder)
+				local priceObj = folder:FindFirstChild("Price") or folder:FindFirstChild("Cost")
+				if priceObj then
+					if priceObj:IsA("TextLabel") or priceObj:IsA("TextButton") then
+						return parseFormattedNumber(priceObj.Text)
+					elseif priceObj:IsA("ValueBase") then
+						if typeof(priceObj.Value) == "number" then
+							return priceObj.Value
+						else
+							return parseFormattedNumber(tostring(priceObj.Value))
+						end
+					end
+				end
+
+				local innerFrame = folder:FindFirstChild("Frame")
+				if innerFrame then
+					local framePrice = innerFrame:FindFirstChild("Price") or innerFrame:FindFirstChild("Cost")
+					if framePrice then
+						if framePrice:IsA("TextLabel") or framePrice:IsA("TextButton") then
+							return parseFormattedNumber(framePrice.Text)
+						elseif framePrice:IsA("ValueBase") then
+							if typeof(framePrice.Value) == "number" then
+								return framePrice.Value
+							else
+								return parseFormattedNumber(tostring(framePrice.Value))
+							end
+						end
+					end
+				end
+
+				return nil
+			end
+
+			while PlatinumUpgradesToggle.IsOn() and ScreenGui.Parent do
+				local listFolder = getPlatinumFolder()
+				local currentPlat = getPlayerPlatinum()
+
+				if listFolder then
+					local upgradeIndex = 1
+
+					for _, item in ipairs(listFolder:GetChildren()) do
+						if item.Name:sub(1, 7) == "Upgrade" then
+							if not isPlatinumUpgradeMaxed(item) then
+								local price = getPlatinumPrice(item)
+								if price and (price == 0 or currentPlat >= price) then
+									platRemote:FireServer(upgradeIndex)
+									task.wait(0.1)
+								end
+							end
+							upgradeIndex = upgradeIndex + 1
+						end
+					end
+				end
+				task.wait(0.15)
+			end
+		end)
+	end
+end
+
+-- Jewels & Opal Panels (Shared driver - already auto-detects)
+local function createBoardUpgradeToggle(parent, name, text, order, eventFolder, remoteName, boardName, upgradesName, currencyNames, singleArg)
+	local toggle = createToggle(parent, name, text, order)
+
+	toggle.Changed = function(state)
+		if state then
+			task.spawn(function()
+				local remote = ReplicatedStorage:WaitForChild("Events"):WaitForChild(eventFolder):WaitForChild(remoteName)
+
+				local function resolveList()
+					local boards = workspace:FindFirstChild("Boards")
+					local board = boards and boards:FindFirstChild(boardName)
+					local upgrades = board and board:FindFirstChild(upgradesName)
+					local surfaceGui = upgrades and upgrades:FindFirstChild("SurfaceGui")
+					local info = surfaceGui and surfaceGui:FindFirstChild("Info")
+					return info and info:FindFirstChild("List")
+				end
+
+				local listFolder = resolveList()
+				while not listFolder and toggle.IsOn() and ScreenGui.Parent do
+					task.wait(1)
+					listFolder = resolveList()
+				end
+				if not listFolder then return end
+
+				local currentCurrency = 0
+
+				local function bindCurrency(obj)
+					local function update()
+						local rawVal
+						if obj:IsA("ValueBase") then
+							rawVal = obj.Value
+						elseif obj:IsA("TextLabel") or obj:IsA("TextButton") then
+							rawVal = obj.Text
+						end
+
+						if type(rawVal) == "number" then
+							currentCurrency = rawVal
+						else
+							currentCurrency = parseFormattedNumber(tostring(rawVal)) or 0
+						end
+					end
+
+					if obj:IsA("ValueBase") then
+						obj:GetPropertyChangedSignal("Value"):Connect(update)
+					elseif obj:IsA("TextLabel") or obj:IsA("TextButton") then
+						obj:GetPropertyChangedSignal("Text"):Connect(update)
+					end
+					update()
+				end
+
+				local function findCurrency()
+					for _, containerName in ipairs({"leaderstats", "Stats", "Values", "Data"}) do
+						local container = LocalPlayer:FindFirstChild(containerName)
+						if container then
+							for _, currencyName in ipairs(currencyNames) do
+								local found = container:FindFirstChild(currencyName)
+								if found and (found:IsA("ValueBase") or found:IsA("TextLabel") or found:IsA("TextButton")) then
+									bindCurrency(found)
+									return true
+								end
+							end
+						end
+					end
+
+					for _, currencyName in ipairs(currencyNames) do
+						local deep = LocalPlayer:FindFirstChild(currencyName, true)
+						if deep and (deep:IsA("ValueBase") or deep:IsA("TextLabel") or deep:IsA("TextButton")) then
+							bindCurrency(deep)
+							return true
+						end
+					end
+					return false
+				end
+
+				if not findCurrency() then
+					task.spawn(function()
+						while toggle.IsOn() and not findCurrency() do
+							task.wait(1)
+						end
+					end)
+				end
+
+				local REJECT_KEYWORDS = {"NOT ENOUGH", "CANNOT", "UNABLE", "INSUFFICIENT"}
+
+				local function rejectionActive()
+					for _, gui in ipairs(PlayerGui:GetDescendants()) do
+						if gui:IsA("TextLabel") and gui.Visible then
+							local t = gui.Text:upper()
+							for _, kw in ipairs(REJECT_KEYWORDS) do
+								if t:find(kw) then
+									return true
+								end
+							end
+						end
+					end
+					return false
+				end
+
+				local function isMaxedOrLocked(folder)
+					local lockedObj = folder:FindFirstChild("Locked")
+					if lockedObj and lockedObj:IsA("GuiObject") and lockedObj.Visible then
+						return true
+					end
+
+					for _, desc in ipairs(folder:GetDescendants()) do
+						if desc:IsA("TextLabel") or desc:IsA("TextButton") then
+							if desc.Text:upper():find("MAX") then
+								return true
+							end
+							local current, maxVal = desc.Text:match("(%d+)%s*/%s*(%d+)")
+							if current and maxVal and tonumber(current) >= tonumber(maxVal) then
+								return true
+							end
+						end
+					end
+					return false
+				end
+
+				local function getPrice(folder)
+					local holders = {folder}
+					local innerFrame = folder:FindFirstChild("Frame")
+					if innerFrame then
+						table.insert(holders, innerFrame)
+					end
+
+					for _, holder in ipairs(holders) do
+						for _, priceName in ipairs({"Price", "Cost"}) do
+							local priceObj = holder:FindFirstChild(priceName)
+							if priceObj then
+								if priceObj:IsA("TextLabel") or priceObj:IsA("TextButton") then
+									local parsed = parseFormattedNumber(priceObj.Text)
+									if parsed then return parsed end
+								elseif priceObj:IsA("ValueBase") then
+									if typeof(priceObj.Value) == "number" then
+										return priceObj.Value
+									end
+									local parsed = parseFormattedNumber(tostring(priceObj.Value))
+									if parsed then return parsed end
+								end
+							end
+						end
+					end
+					return nil
+				end
+
+				local blockedUntil = {}
+
+				while toggle.IsOn() and ScreenGui.Parent do
+					local cards = listFolder:GetChildren()
+					table.sort(cards, function(a, b)
+						local na = tonumber(a.Name:match("%d+")) or math.huge
+						local nb = tonumber(b.Name:match("%d+")) or math.huge
+						return na < nb
+					end)
+
+					for _, item in ipairs(cards) do
+						if not toggle.IsOn() then break end
+
+						local idx = tonumber(item.Name:match("%d+"))
+						if not idx or item.Name:sub(1, 7) ~= "Upgrade" then continue end
+						if blockedUntil[idx] and os.clock() < blockedUntil[idx] then continue end
+						if isMaxedOrLocked(item) then continue end
+
+						local price = getPrice(item)
+						if not price or price <= 0 or currentCurrency < price then continue end
+
+						local priceObj = item:FindFirstChild("Price")
+						local levelObj = item:FindFirstChild("Level")
+						local beforePrice = (priceObj and (priceObj:IsA("TextLabel") or priceObj:IsA("TextButton"))) and priceObj.Text or nil
+						local beforeLevel = (levelObj and (levelObj:IsA("TextLabel") or levelObj:IsA("TextButton"))) and levelObj.Text or nil
+
+						local clearGuard = 0
+						while rejectionActive() and clearGuard < 25 do
+							task.wait(0.2)
+							clearGuard = clearGuard + 1
+						end
+
+						if singleArg then
+							remote:FireServer(idx)
+						else
+							remote:FireServer(idx, true)
+						end
+
+						task.wait(0.5)
+
+						local changed = false
+						if beforePrice and priceObj.Text ~= beforePrice then
+							changed = true
+						end
+						if beforeLevel and levelObj.Text ~= beforeLevel then
+							changed = true
+						end
+
+						if changed then
+							task.wait(0.15)
+						elseif rejectionActive() then
+							blockedUntil[idx] = os.clock() + 90
+							print(("[%s] Upgrade%d rejected by the game -> retry in 90s"):format(text, idx))
+						else
+							blockedUntil[idx] = os.clock() + 60
+							print(("[%s] Upgrade%d no change after fire -> retry in 60s"):format(text, idx))
+						end
+					end
+
+					task.wait(0.3)
+				end
+			end)
+		end
+	end
+
+	return toggle
+end
+
+createBoardUpgradeToggle(
+	sections.Jewels,
+	"JewelsUpgradesToggle",
+	"Auto Jewels Upgrades",
+	1,
+	"CollectCrystal",
+	"JewelsUpgrade",
+	"Jewels",
+	"JewelsUpgrades",
+	{"Jewels", "Jewel"}
+)
+
+createBoardUpgradeToggle(
+	sections.Opal,
+	"OpalUpgradesToggle",
+	"Auto Opal Upgrades",
+	1,
+	"CollectCrystal",
+	"OpalUpgrade",
+	"OpalReset",
+	"OpalUpgrades",
+	{"Opal", "Opals", "OpalShards"}
+)
+
+-- Tree Panel Extra Boards
+createBoardUpgradeToggle(
+	sections.Tree,
+	"AutoSapUpgradeToggle",
+	"Auto Sap Upgrades",
+	4,
+	"CutTree",
+	"TreeSapUpgrade",
+	"Sap",
+	"SapUpgrades",
+	{"Sap", "TreeSap", "Logs"}
+)
+
+createBoardUpgradeToggle(
+	sections.Tree,
+	"SapPerkToggle",
+	"Auto Sap Perk",
+	5,
+	"PerkUpgrade",
+	"SapPerk",
+	"SapLevels",
+	"SapPerks",
+	{"SapPerks"},
+	true
+)
+
+createBoardUpgradeToggle(
+	sections.Tree,
+	"AutoRootsUpgradeToggle",
+	"Auto Roots Upgrades",
+	6,
+	"CutTree",
+	"TreeRootsUpgrade",
+	"Roots",
+	"RootsUpgrades",
+	{"Roots", "TreeRoots", "Logs"}
+)
+
+createBoardUpgradeToggle(
+	sections.Tree,
+	"LogPerkToggle",
+	"Auto Log Perk",
+	7,
+	"PerkUpgrade",
+	"LogPerk",
+	"LogLevels",
+	"TreePerks",
+	{"LogPerks"},
+	true
+)
+
+-- Crystal Panel Extra Boards
+createBoardUpgradeToggle(
+	sections.Crystal,
+	"CrystalPerkToggle",
+	"Auto Crystal Perk",
+	3,
+	"CollectCrystal",
+	"PerkUpgrade",
+	"CrystalLevel",
+	"CrystalPerks",
+	{"CrystalPerks"},
+	true
+)
+
+createBoardUpgradeToggle(
+	sections.Crystal,
+	"CrystalShardUpgradeToggle",
+	"Auto Shard Upgrades",
+	4,
+	"CollectCrystal",
+	"ShardUpgrade",
+	"CrystalShards",
+	"ShardsBoard",
+	{"Shards", "Shard", "CrystalShards"}
+)
+
+createBoardUpgradeToggle(
+	sections.Crystal,
+	"AdamantiumUpgradeToggle",
+	"Auto Adamantium Upgrades",
+	5,
+	"CollectCrystal",
+	"AdamantiumUpgrade",
+	"Adamantium",
+	"AdamantiumUpgrades",
+	{"Adamantium"}
+)
+
+createBoardUpgradeToggle(
+	sections.Crystal,
+	"CaliforniumUpgradeToggle",
+	"Auto Californium Upgrades",
+	6,
+	"CollectCrystal",
+	"CaliforniumUpgrade",
+	"Californium",
+	"CaliforniumUpgrades",
+	{"Californium"}
+)
+
+-- Life Panel
+createBoardUpgradeToggle(
+	sections.Life,
+	"LifeUpgradeToggle",
+	"Auto Life Upgrades",
+	1,
+	"StartLife",
+	"LifeUpgrade",
+	"LifeCreation",
+	"LifeUpgrades",
+	{"Life", "LifeShards", "LifeEnergy"}
+)
+
+createBoardUpgradeToggle(
+	sections.Life,
+	"FossilUpgradeToggle",
+	"Auto Fossil Upgrades",
+	2,
+	"StartLife",
+	"FossilUpgrade",
+	"FossilUpgrades",
+	"FossilUpgrades",
+	{"Fossil", "Fossils"}
+)
+
+createBoardUpgradeToggle(
+	sections.Life,
+	"TerraformUpgradeToggle",
+	"Auto Terraform Upgrades",
+	3,
+	"TerraformReset",
+	"TerraformUpgrade",
+	"Terraforming",
+	"TerraformUpgrades",
+	{"TerraformGem", "Terraform"}
+)
+
+-- Research Panel (Already auto-detects)
+local ResearchToggle = createToggle(sections.Research, "ResearchUpgradesToggle", "Auto Research Upgrades", 1)
+
+ResearchToggle.Changed = function(state)
+	if state then
+		task.spawn(function()
+			local researchRemote = ReplicatedStorage:WaitForChild("Events"):WaitForChild("ResearchUpgrade")
+
+			local listFolder = workspace:WaitForChild("Boards")
+				:WaitForChild("Research")
+				:WaitForChild("ResearchUpgrades")
+				:WaitForChild("SurfaceGui")
+				:WaitForChild("Info")
+				:WaitForChild("List")
+
+			local currentResearch = 0
+
+			local function bindResearchObject(obj)
+				local function update()
+					local rawVal
+					if obj:IsA("ValueBase") then
+						rawVal = obj.Value
+					elseif obj:IsA("TextLabel") or obj:IsA("TextButton") then
+						rawVal = obj.Text
+					end
+
+					if type(rawVal) == "number" then
+						currentResearch = rawVal
+					else
+						currentResearch = parseFormattedNumber(tostring(rawVal)) or 0
+					end
+				end
+
+				if obj:IsA("ValueBase") then
+					obj:GetPropertyChangedSignal("Value"):Connect(update)
+				elseif obj:IsA("TextLabel") or obj:IsA("TextButton") then
+					obj:GetPropertyChangedSignal("Text"):Connect(update)
+				end
+				update()
+			end
+
+			local function findResearchStat()
+				for _, containerName in ipairs({"leaderstats", "Stats", "Values", "Data"}) do
+					local container = LocalPlayer:FindFirstChild(containerName)
+					if container then
+						for _, name in ipairs({"Research", "ResearchPoints", "RP"}) do
+							local found = container:FindFirstChild(name)
+							if found then
+								bindResearchObject(found)
+								return true
+							end
+						end
+					end
+				end
+
+				for _, name in ipairs({"Research", "ResearchPoints", "RP"}) do
+					local deep = LocalPlayer:FindFirstChild(name, true)
+					if deep then
+						bindResearchObject(deep)
+						return true
+					end
+				end
+				return false
+			end
+
+			if not findResearchStat() then
+				task.spawn(function()
+					while ResearchToggle.IsOn() and not findResearchStat() do
+						task.wait(1)
+					end
+				end)
+			end
+
+			local function isResearchMaxed(folder)
+				local lockedObj = folder:FindFirstChild("Locked")
+				if lockedObj and lockedObj.Visible then
+					return true
+				end
+
+				local levelObj = folder:FindFirstChild("Level")
+				local levelText = (levelObj and levelObj:IsA("TextLabel")) and levelObj.Text or (levelObj and tostring(levelObj.Value))
+				if not levelText then return false end
+
+				if levelText:upper():find("MAX") then
+					return true
+				end
+
+				local current, max = levelText:match("(%d+)/(%d+)")
+				if current and max and tonumber(current) >= tonumber(max) then
+					return true
+				end
+
+				return false
+			end
+
+			local function getResearchPrice(folder)
+				local priceObj = folder:FindFirstChild("Price")
+				if priceObj then
+					if priceObj:IsA("TextLabel") or priceObj:IsA("TextButton") then
+						return parseFormattedNumber(priceObj.Text)
+					elseif priceObj:IsA("ValueBase") then
+						if typeof(priceObj.Value) == "number" then
+							return priceObj.Value
+						end
+						return parseFormattedNumber(tostring(priceObj.Value))
+					end
+				end
+				return nil
+			end
+
+			while ResearchToggle.IsOn() and ScreenGui.Parent do
+				local upgradeIndex = 1
+
+				for _, item in ipairs(listFolder:GetChildren()) do
+					if not ResearchToggle.IsOn() then break end
+					if item.Name:sub(1, 7) == "Upgrade" then
+						if not isResearchMaxed(item) then
+							local price = getResearchPrice(item)
+							if price and (price == 0 or currentResearch >= price) then
+								researchRemote:FireServer(upgradeIndex, true)
+								task.wait(0.1)
+							end
+						end
+						upgradeIndex = upgradeIndex + 1
+					end
+				end
+				task.wait(0.15)
+			end
+		end)
+	end
+end
+
+-- Golden Research (under Research)
+local GoldenCurrency = {value = 0, bound = false}
+
+local function tryBindGoldenCurrency()
+	if GoldenCurrency.bound then return true end
+
+	local function bind(obj)
+		local function update()
+			local rawVal
+			if obj:IsA("ValueBase") then
+				rawVal = obj.Value
+			elseif obj:IsA("TextLabel") or obj:IsA("TextButton") then
+				rawVal = obj.Text
+			end
+			if type(rawVal) == "number" then
+				GoldenCurrency.value = rawVal
+			else
+				GoldenCurrency.value = parseFormattedNumber(tostring(rawVal)) or 0
+			end
+		end
+
+		if obj:IsA("ValueBase") then
+			obj:GetPropertyChangedSignal("Value"):Connect(update)
+		else
+			obj:GetPropertyChangedSignal("Text"):Connect(update)
+		end
+		update()
+		GoldenCurrency.bound = true
+	end
+
+	local function usable(o)
+		return o and (o:IsA("ValueBase") or o:IsA("TextLabel") or o:IsA("TextButton"))
+	end
+
+	for _, containerName in ipairs({"leaderstats", "Stats", "Values", "Data"}) do
+		local container = LocalPlayer:FindFirstChild(containerName)
+		local found = container and container:FindFirstChild("GoldenResearch")
+		if usable(found) then
+			bind(found)
+			return true
+		end
+	end
+
+	local deep = LocalPlayer:FindFirstChild("GoldenResearch", true)
+	if usable(deep) then
+		bind(deep)
+		return true
+	end
+	return false
+end
+
+-- Board layout (from Explorer): <Board>.SurfaceGui.Info.List -> U1, U2, U3, ...
+-- Reads the direct children of every "List" under the board's SurfaceGui(s),
+-- preferring SurfaceGui, and returns cards sorted by their number (no max hardcoded).
+local function collectGoldenCards(board)
+	local lists = {}
+
+	local function addList(gui)
+		local info = gui and gui:FindFirstChild("Info")
+		local list = info and info:FindFirstChild("List")
+		if list then table.insert(lists, list) end
+	end
+
+	addList(board:FindFirstChild("SurfaceGui"))
+	for _, child in ipairs(board:GetChildren()) do
+		if child:IsA("SurfaceGui") and child.Name ~= "SurfaceGui" then
+			addList(child)
+		end
+	end
+
+	local byIdx = {}
+	for _, list in ipairs(lists) do
+		for _, obj in ipairs(list:GetChildren()) do
+			local n = obj.Name:match("^U(%d+)$") or obj.Name:match("^Upgrade(%d+)$")
+			n = tonumber(n)
+			if n and not byIdx[n] then
+				byIdx[n] = obj
+			end
+		end
+		if next(byIdx) then break end -- use the first list that actually has cards
+	end
+
+	local result = {}
+	for idx, obj in pairs(byIdx) do
+		table.insert(result, {idx = idx, obj = obj})
+	end
+	table.sort(result, function(x, y) return x.idx < y.idx end)
+	return result
+end
+
+-- Card layout: Icon, Gain, Price, PriceIcon, Level, Button, Design (+ UIScale/UIAspectRatio)
+local function goldenText(card, childName)
+	local o = card:FindFirstChild(childName)
+	if o and (o:IsA("TextLabel") or o:IsA("TextButton")) then
+		return o.Text
+	end
+	return nil
+end
+
+local function goldenCardMaxedOrLocked(card)
+	local lockedObj = card:FindFirstChild("Locked")
+	if lockedObj and lockedObj:IsA("GuiObject") and lockedObj.Visible then
+		return true
+	end
+
+	for _, childName in ipairs({"Level", "Price", "Button"}) do
+		local t = goldenText(card, childName)
+		if t then
+			local up = t:upper()
+			if up:find("MAX") or up:find("LOCK") then
+				return true
+			end
+			if childName == "Level" then
+				local cur, mx = t:match("(%d+)%s*/%s*(%d+)")
+				if cur and mx and tonumber(cur) >= tonumber(mx) then
+					return true
+				end
+			end
+		end
+	end
+	return false
+end
+
+local function goldenCardPrice(card)
+	local holders = {card}
+	local inner = card:FindFirstChild("Frame")
+	if inner then table.insert(holders, inner) end
+
+	for _, holder in ipairs(holders) do
+		for _, priceName in ipairs({"Price", "Cost"}) do
+			local p = holder:FindFirstChild(priceName)
+			if p then
+				if p:IsA("TextLabel") or p:IsA("TextButton") then
+					return parseFormattedNumber(p.Text)
+				elseif p:IsA("ValueBase") then
+					if typeof(p.Value) == "number" then return p.Value end
+					return parseFormattedNumber(tostring(p.Value))
+				end
+			end
+		end
+	end
+	return nil
+end
+
+local function goldenCardSignature(card)
+	return table.concat({
+		goldenText(card, "Level") or "",
+		goldenText(card, "Price") or "",
+		goldenText(card, "Gain") or "",
+	}, "|")
+end
+
+-- Shared auto-buyer for both golden boards.
+-- makeArgs(idx) -> the tuple of args for the remote
+local function createGoldenBoardToggle(order, name, text, remoteName, boardName, makeArgs)
+	local toggle = createToggle(sections.Research, name, text, order)
+
+	toggle.Changed = function(state)
+		if not state then return end
+
+		task.spawn(function()
+			local remote = ReplicatedStorage:WaitForChild("Events"):WaitForChild(remoteName)
+			-- Workspace.Boards.GoldenResearch.<boardName>  (timed waits so it never hangs silently)
+			local goldenBoard = workspace:WaitForChild("Boards", 10)
+			goldenBoard = goldenBoard and goldenBoard:WaitForChild("GoldenResearch", 10)
+			if not goldenBoard then
+				print("[Golden] Workspace.Boards.GoldenResearch not found")
+				return
+			end
+
+			local board = goldenBoard:WaitForChild(boardName, 10)
+			if not board then
+				local names = {}
+				for _, c in ipairs(goldenBoard:GetChildren()) do table.insert(names, c.Name) end
+				print(("[Golden] '%s' not found. Children of GoldenResearch: %s"):format(boardName, table.concat(names, ", ")))
+				return
+			end
+			print(("[Golden] Using %s"):format(board:GetFullName()))
+
+			local cooldown = {}
+			local warned = false
+
+			while toggle.IsOn() and ScreenGui.Parent do
+				tryBindGoldenCurrency()
+
+				local cards = collectGoldenCards(board)
+				if #cards == 0 and not warned then
+					warned = true
+					print(("[Golden] No U# cards found under Boards.GoldenResearch.%s.SurfaceGui.Info.List"):format(boardName))
+				end
+
+				for _, entry in ipairs(cards) do
+					if not toggle.IsOn() then break end
+
+					local idx, card = entry.idx, entry.obj
+					if cooldown[idx] and os.clock() < cooldown[idx] then continue end
+					if goldenCardMaxedOrLocked(card) then continue end
+
+					local price = goldenCardPrice(card)
+					if price and price > 0 and GoldenCurrency.bound and GoldenCurrency.value < price then
+						continue
+					end
+
+					local before = goldenCardSignature(card)
+					remote:FireServer(makeArgs(idx))
+					task.wait(0.3)
+
+					if goldenCardSignature(card) ~= before then
+						table.clear(cooldown)
+					else
+						cooldown[idx] = os.clock() + 5
+					end
+				end
+
+				task.wait(0.2)
+			end
+		end)
+	end
+
+	return toggle
+end
+
+local GoldenResearchToggle = createToggle(sections.Research, "GoldenResearchToggle", "Auto Golden Research", 2)
+
+GoldenResearchToggle.Changed = function(state)
+	if state then
+		task.spawn(function()
+			local gainRemote = ReplicatedStorage:WaitForChild("Events"):WaitForChild("GainGoldenResearch")
+			while GoldenResearchToggle.IsOn() and ScreenGui.Parent do
+				gainRemote:FireServer()
+				task.wait()
+			end
+		end)
+	end
+end
+
+local GoldenPointsToggle = createGoldenBoardToggle(
+	3, "GoldenPointsToggle", "Auto Golden Points", "GoldenResearchD", "GoldenPoints",
+	function(idx) return "U" .. idx end
+)
+
+local GoldenUpgradesToggle = createGoldenBoardToggle(
+	4, "GoldenUpgradesToggle", "Auto Golden Upgrades", "GoldenResearchUpgrade", "GoldenUpgrades",
+	function(idx) return idx, true end
+)
+
+-- Perks Panel (Already auto-detects)
+local PerksToggle = createToggle(sections.Perks, "PerksToggle", "Auto Perk Upgrades", 1)
+
+PerksToggle.Changed = function(state)
+	if state then
+		task.spawn(function()
+			local perkRemote = ReplicatedStorage:WaitForChild("Events"):WaitForChild("PerkUpgrade")
+
+			local listFolder = workspace:WaitForChild("Boards")
+				:WaitForChild("Levels")
+				:WaitForChild("PerksTree")
+				:WaitForChild("SurfaceGui")
+				:WaitForChild("Tree")
+				:WaitForChild("List")
+
+			local currentPerkCurrency = 0
+
+			local function bindCurrencyObject(obj)
+				local function update()
+					local rawVal
+					if obj:IsA("ValueBase") then
+						rawVal = obj.Value
+					elseif obj:IsA("TextLabel") or obj:IsA("TextButton") then
+						rawVal = obj.Text
+					end
+
+					if type(rawVal) == "number" then
+						currentPerkCurrency = rawVal
+					else
+						currentPerkCurrency = parseFormattedNumber(tostring(rawVal)) or 0
+					end
+				end
+
+				if obj:IsA("ValueBase") then
+					obj:GetPropertyChangedSignal("Value"):Connect(update)
+				elseif obj:IsA("TextLabel") or obj:IsA("TextButton") then
+					obj:GetPropertyChangedSignal("Text"):Connect(update)
+				end
+				update()
+			end
+
+			local function findPerkCurrency()
+				for _, containerName in ipairs({"leaderstats", "Stats", "Values", "Data"}) do
+					local container = LocalPlayer:FindFirstChild(containerName)
+					if container then
+						for _, name in ipairs({"PerkPoints", "Perks", "Perk", "PP", "SkillPoints", "Points"}) do
+							local found = container:FindFirstChild(name)
+							if found then
+								bindCurrencyObject(found)
+								return true
+							end
+						end
+					end
+				end
+
+				for _, name in ipairs({"PerkPoints", "Perks", "Perk", "PP", "SkillPoints", "Points"}) do
+					local deep = LocalPlayer:FindFirstChild(name, true)
+					if deep then
+						bindCurrencyObject(deep)
+						return true
+					end
+				end
+				return false
+			end
+
+			if not findPerkCurrency() then
+				task.spawn(function()
+					while PerksToggle.IsOn() and not findPerkCurrency() do
+						task.wait(1)
+					end
+				end)
+			end
+
+			local REJECT_KEYWORDS = {"NOT ENOUGH", "CANNOT", "UNABLE", "INSUFFICIENT"}
+
+			local function rejectionActive()
+				for _, gui in ipairs(PlayerGui:GetDescendants()) do
+					if gui:IsA("TextLabel") and gui.Visible then
+						local t = gui.Text:upper()
+						for _, kw in ipairs(REJECT_KEYWORDS) do
+							if t:find(kw) then
+								return true
+							end
+						end
+					end
+				end
+				return false
+			end
+
+			local function isPerkMaxed(folder)
+				for _, desc in ipairs(folder:GetDescendants()) do
+					if desc:IsA("TextLabel") or desc:IsA("TextButton") then
+						if desc.Text:upper():find("MAX") then
+							return true
+						end
+					end
+				end
+				return false
+			end
+
+			local LOCK_KEYWORDS = {"LOCKED", "LOCK", "REQUIRES", "UNLOCK AT", "UNLOCKS AT"}
+
+			local function isPerkLocked(folder)
+				-- Explicit "Locked" instance (BoolValue/Frame/etc.) some perk trees use
+				local lockedFlag = folder:FindFirstChild("Locked")
+				if lockedFlag then
+					if lockedFlag:IsA("BoolValue") then
+						if lockedFlag.Value then return true end
+					elseif lockedFlag:IsA("GuiObject") then
+						if lockedFlag.Visible then return true end
+					end
+				end
+
+				for _, desc in ipairs(folder:GetDescendants()) do
+					if desc:IsA("TextLabel") or desc:IsA("TextButton") then
+						local t = desc.Text:upper()
+						for _, kw in ipairs(LOCK_KEYWORDS) do
+							if t:find(kw) then
+								return true
+							end
+						end
+					elseif desc:IsA("ImageLabel") or desc:IsA("ImageButton") then
+						-- Common lock-icon naming convention
+						if desc.Name:upper():find("LOCK") and desc.Visible then
+							return true
+						end
+					end
+				end
+				return false
+			end
+
+			local function getPerkPrice(folder)
+				local priceObj = folder:FindFirstChild("Price")
+				if priceObj then
+					if priceObj:IsA("TextLabel") or priceObj:IsA("TextButton") then
+						return parseFormattedNumber(priceObj.Text)
+					elseif priceObj:IsA("ValueBase") then
+						if typeof(priceObj.Value) == "number" then
+							return priceObj.Value
+						end
+						return parseFormattedNumber(tostring(priceObj.Value))
+					end
+				end
+				return nil
+			end
+
+			local blockedUntil = {}
+			local lockedUntil = {}
+
+			while PerksToggle.IsOn() and ScreenGui.Parent do
+				local cards = listFolder:GetChildren()
+				table.sort(cards, function(a, b)
+					local na = tonumber(a.Name:match("%d+")) or math.huge
+					local nb = tonumber(b.Name:match("%d+")) or math.huge
+					return na < nb
+				end)
+
+				for _, item in ipairs(cards) do
+					if not PerksToggle.IsOn() then break end
+
+					local idx = tonumber(item.Name:match("%d+"))
+					if not idx or item.Name:sub(1, 7) ~= "Upgrade" then continue end
+					if blockedUntil[idx] and os.clock() < blockedUntil[idx] then continue end
+					if lockedUntil[idx] and os.clock() < lockedUntil[idx] then continue end
+
+					if isPerkMaxed(item) then continue end
+
+					-- Locked perks (waiting on a prerequisite) are never fired at the
+					-- server and never get the long rejection cooldown, so they get
+					-- re-checked cheaply and buy the instant they unlock instead of
+					-- getting starved behind later upgrades.
+					if isPerkLocked(item) then
+						lockedUntil[idx] = os.clock() + 2
+						continue
+					end
+
+					local price = getPerkPrice(item)
+					if not price or price <= 0 or currentPerkCurrency < price then continue end
+
+					local priceObj = item:FindFirstChild("Price")
+					local gainObj = item:FindFirstChild("Gain")
+					local beforePrice = (priceObj and (priceObj:IsA("TextLabel") or priceObj:IsA("TextButton"))) and priceObj.Text or nil
+					local beforeGain = (gainObj and (gainObj:IsA("TextLabel") or gainObj:IsA("TextButton"))) and gainObj.Text or nil
+
+					local clearGuard = 0
+					while rejectionActive() and clearGuard < 25 do
+						task.wait(0.2)
+						clearGuard = clearGuard + 1
+					end
+
+					perkRemote:FireServer(idx, true)
+
+					task.wait(0.5)
+
+					local changed = false
+					if beforePrice and priceObj.Text ~= beforePrice then
+						changed = true
+					end
+					if beforeGain and gainObj.Text ~= beforeGain then
+						changed = true
+					end
+
+					if changed then
+						-- A purchase went through: game state changed, so any earlier
+						-- upgrade that was previously blocked/locked deserves an
+						-- immediate re-check next pass instead of sitting out a stale
+						-- cooldown while currency keeps flowing to later upgrades.
+						table.clear(blockedUntil)
+						table.clear(lockedUntil)
+						task.wait(0.15)
+					elseif rejectionActive() then
+						blockedUntil[idx] = os.clock() + 20
+						print(("[Perks] Upgrade%d rejected by the game -> retry in 20s"):format(idx))
+					else
+						blockedUntil[idx] = os.clock() + 10
+						print(("[Perks] Upgrade%d no change after fire -> retry in 10s"):format(idx))
+					end
+				end
+
+				task.wait(0.3)
+			end
+		end)
+	end
+end
+
+-- Prestige Panel (Already auto-detects)
+local PrestigeToggle = createToggle(sections.Prestige, "PrestigeToggle", "Auto Prestige Upgrades", 1)
+
+PrestigeToggle.Changed = function(state)
+	if state then
+		task.spawn(function()
+			local prestigeRemote = ReplicatedStorage:WaitForChild("Events")
+				:WaitForChild("Prestige")
+				:WaitForChild("PrestigeUpgrade")
+
+			local function resolvePrestigeList()
+				local board = workspace:FindFirstChild("PrestigeBoard")
+				if not board then
+					local boards = workspace:FindFirstChild("Boards")
+					board = boards and boards:FindFirstChild("PrestigeBoard")
+				end
+				if not board then return nil end
+				local upgrades = board:FindFirstChild("PrestigeUpgrades")
+				local surfaceGui = upgrades and upgrades:FindFirstChild("SurfaceGui")
+				local info = surfaceGui and surfaceGui:FindFirstChild("Info")
+				return info and info:FindFirstChild("List")
+			end
+
+			local listFolder = resolvePrestigeList()
+			while not listFolder and PrestigeToggle.IsOn() and ScreenGui.Parent do
+				task.wait(1)
+				listFolder = resolvePrestigeList()
+			end
+			if not listFolder then return end
+
+			local currentPrestige = 0
+
+			local function bindCurrencyObject(obj)
+				local function update()
+					local rawVal
+					if obj:IsA("ValueBase") then
+						rawVal = obj.Value
+					elseif obj:IsA("TextLabel") or obj:IsA("TextButton") then
+						rawVal = obj.Text
+					end
+
+					if type(rawVal) == "number" then
+						currentPrestige = rawVal
+					else
+						currentPrestige = parseFormattedNumber(tostring(rawVal)) or 0
+					end
+				end
+
+				if obj:IsA("ValueBase") then
+					obj:GetPropertyChangedSignal("Value"):Connect(update)
+				elseif obj:IsA("TextLabel") or obj:IsA("TextButton") then
+					obj:GetPropertyChangedSignal("Text"):Connect(update)
+				end
+				update()
+			end
+
+			local function findPrestigeCurrency()
+				for _, containerName in ipairs({"leaderstats", "Stats", "Values", "Data"}) do
+					local container = LocalPlayer:FindFirstChild(containerName)
+					if container then
+						for _, name in ipairs({"PrestigePoints", "Prestige", "PrestigeTokens", "PrestigeShards"}) do
+							local found = container:FindFirstChild(name)
+							if found and (found:IsA("ValueBase") or found:IsA("TextLabel") or found:IsA("TextButton")) then
+								bindCurrencyObject(found)
+								return true
+							end
+						end
+					end
+				end
+
+				for _, name in ipairs({"PrestigePoints", "Prestige", "PrestigeTokens", "PrestigeShards"}) do
+					local deep = LocalPlayer:FindFirstChild(name, true)
+					if deep and (deep:IsA("ValueBase") or deep:IsA("TextLabel") or deep:IsA("TextButton")) then
+						bindCurrencyObject(deep)
+						return true
+					end
+				end
+				return false
+			end
+
+			if not findPrestigeCurrency() then
+				task.spawn(function()
+					while PrestigeToggle.IsOn() and not findPrestigeCurrency() do
+						task.wait(1)
+					end
+				end)
+			end
+
+			local REJECT_KEYWORDS = {"NOT ENOUGH", "CANNOT", "UNABLE", "INSUFFICIENT"}
+
+			local function rejectionActive()
+				for _, gui in ipairs(PlayerGui:GetDescendants()) do
+					if gui:IsA("TextLabel") and gui.Visible then
+						local t = gui.Text:upper()
+						for _, kw in ipairs(REJECT_KEYWORDS) do
+							if t:find(kw) then
+								return true
+							end
+						end
+					end
+				end
+				return false
+			end
+
+			local function isPrestigeMaxed(folder)
+				for _, desc in ipairs(folder:GetDescendants()) do
+					if desc:IsA("TextLabel") or desc:IsA("TextButton") then
+						local t = desc.Text:upper()
+						if t:find("MAX") then
+							return true
+						end
+						local current, maxVal = desc.Text:match("(%d+)%s*/%s*(%d+)")
+						if current and maxVal and tonumber(current) >= tonumber(maxVal) then
+							return true
+						end
+					end
+				end
+				return false
+			end
+
+			local function getPrestigePrice(folder)
+				local priceObj = folder:FindFirstChild("Price")
+				if priceObj then
+					if priceObj:IsA("TextLabel") or priceObj:IsA("TextButton") then
+						return parseFormattedNumber(priceObj.Text)
+					elseif priceObj:IsA("ValueBase") then
+						if typeof(priceObj.Value) == "number" then
+							return priceObj.Value
+						end
+						return parseFormattedNumber(tostring(priceObj.Value))
+					end
+				end
+				return nil
+			end
+
+			local blockedUntil = {}
+
+			task.spawn(function()
+				task.wait(1.5)
+				while PrestigeToggle.IsOn() and ScreenGui.Parent do
+					local counts = {maxed = 0, placeholder = 0, parsefail = 0, unaffordable = 0, blocked = 0, buyable = 0}
+					for _, item in ipairs(listFolder:GetChildren()) do
+						local idx = tonumber(item.Name:match("%d+"))
+						if idx and item.Name:sub(1, 7) == "Upgrade" then
+							if blockedUntil[idx] and os.clock() < blockedUntil[idx] then
+								counts.blocked = counts.blocked + 1
+							elseif isPrestigeMaxed(item) then
+								counts.maxed = counts.maxed + 1
+							else
+								local price = getPrestigePrice(item)
+								if not price then
+									counts.parsefail = counts.parsefail + 1
+								elseif price <= 1 then
+									counts.placeholder = counts.placeholder + 1
+								elseif currentPrestige < price then
+									counts.unaffordable = counts.unaffordable + 1
+								else
+									counts.buyable = counts.buyable + 1
+								end
+							end
+						end
+					end
+					print(("[Prestige] currency=%s | maxed=%d placeholder=%d parsefail=%d unaffordable=%d blocked=%d BUYABLE=%d"):format(
+						tostring(currentPrestige),
+						counts.maxed,
+						counts.placeholder,
+						counts.parsefail,
+						counts.unaffordable,
+						counts.blocked,
+						counts.buyable
+					))
+					task.wait(10)
+				end
+			end)
+
+			while PrestigeToggle.IsOn() and ScreenGui.Parent do
+				local cards = listFolder:GetChildren()
+				table.sort(cards, function(a, b)
+					local na = tonumber(a.Name:match("%d+")) or math.huge
+					local nb = tonumber(b.Name:match("%d+")) or math.huge
+					return na < nb
+				end)
+
+				for _, item in ipairs(cards) do
+					if not PrestigeToggle.IsOn() then break end
+
+					local idx = tonumber(item.Name:match("%d+"))
+					if not idx or item.Name:sub(1, 7) ~= "Upgrade" then continue end
+					if blockedUntil[idx] and os.clock() < blockedUntil[idx] then continue end
+					if isPrestigeMaxed(item) then continue end
+
+					local price = getPrestigePrice(item)
+					if not price or price <= 1 or currentPrestige < price then continue end
+
+					local priceObj = item:FindFirstChild("Price")
+					local gainObj = item:FindFirstChild("Gain")
+					local levelObj = item:FindFirstChild("Level")
+					local beforePrice = (priceObj and (priceObj:IsA("TextLabel") or priceObj:IsA("TextButton"))) and priceObj.Text or nil
+					local beforeGain = (gainObj and (gainObj:IsA("TextLabel") or gainObj:IsA("TextButton"))) and gainObj.Text or nil
+					local beforeLevel = (levelObj and (levelObj:IsA("TextLabel") or levelObj:IsA("TextButton"))) and levelObj.Text or nil
+
+					local clearGuard = 0
+					while rejectionActive() and clearGuard < 25 do
+						task.wait(0.2)
+						clearGuard = clearGuard + 1
+					end
+
+					prestigeRemote:FireServer(idx, true)
+
+					task.wait(0.5)
+
+					local changed = false
+					if beforePrice and priceObj.Text ~= beforePrice then
+						changed = true
+					end
+					if beforeGain and gainObj.Text ~= beforeGain then
+						changed = true
+					end
+					if beforeLevel and levelObj.Text ~= beforeLevel then
+						changed = true
+					end
+
+					if changed then
+						task.wait(0.15)
+					elseif rejectionActive() then
+						blockedUntil[idx] = os.clock() + 90
+						print(("[Prestige] Upgrade%d rejected by the game -> retry in 90s"):format(idx))
+					else
+						blockedUntil[idx] = os.clock() + 60
+						print(("[Prestige] Upgrade%d no change after fire -> retry in 60s"):format(idx))
+					end
+				end
+
+				task.wait(0.3)
+			end
+		end)
+	end
+end
+
+-- Monster Panel
+local MonsterToggle = createToggle(sections.Monster, "MonsterToggle", "Auto Kill Monster", 1)
+
+MonsterToggle.Changed = function(state)
+	if state then
+		task.spawn(function()
+			local monsterRemote = LocalPlayer:WaitForChild("GameplayEvents"):WaitForChild("MonsterGain")
+
+			while MonsterToggle.IsOn() and ScreenGui.Parent do
+				monsterRemote:FireServer()
+				task.wait(0.25)
+			end
+		end)
+	end
+end
+
+-- Buttons Panel
+do
+	local ButtonsSection = sections.Buttons
+
+	local HeaderRow = Instance.new("Frame")
+	HeaderRow.Name = "ButtonsHeader"
+	HeaderRow.Size = UDim2.new(1, 0, 0, 28)
+	HeaderRow.BackgroundColor3 = Theme.Element
+	HeaderRow.BorderSizePixel = 0
+	HeaderRow.LayoutOrder = 0
+	HeaderRow.Parent = ButtonsSection
+
+	local HeaderCorner = Instance.new("UICorner")
+	HeaderCorner.CornerRadius = UDim.new(0, 8)
+	HeaderCorner.Parent = HeaderRow
+
+	local HeaderStroke = Instance.new("UIStroke")
+	HeaderStroke.Color = Theme.Stroke
+	HeaderStroke.Thickness = 1
+	HeaderStroke.Transparency = 0.45
+	HeaderStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+	HeaderStroke.Parent = HeaderRow
+
+	local HeaderLabel = Instance.new("TextLabel")
+	HeaderLabel.Size = UDim2.new(1, -80, 1, 0)
+	HeaderLabel.Position = UDim2.new(0, 12, 0, 0)
+	HeaderLabel.BackgroundTransparency = 1
+	HeaderLabel.Text = "Button Models"
+	HeaderLabel.TextColor3 = Theme.Text
+	HeaderLabel.TextSize = 12
+	HeaderLabel.Font = Enum.Font.GothamBold
+	HeaderLabel.TextXAlignment = Enum.TextXAlignment.Left
+	HeaderLabel.Parent = HeaderRow
+
+	local RefreshBtn = Instance.new("TextButton")
+	RefreshBtn.Name = "RefreshButtons"
+	RefreshBtn.Size = UDim2.new(0, 64, 0, 20)
+	RefreshBtn.Position = UDim2.new(1, -72, 0.5, -10)
+	RefreshBtn.BackgroundColor3 = Theme.Accent
+	RefreshBtn.Text = "Refresh"
+	RefreshBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+	RefreshBtn.TextSize = 10
+	RefreshBtn.Font = Enum.Font.GothamBold
+	RefreshBtn.AutoButtonColor = false
+	RefreshBtn.BorderSizePixel = 0
+	RefreshBtn.Parent = HeaderRow
+
+	local RefreshCorner = Instance.new("UICorner")
+	RefreshCorner.CornerRadius = UDim.new(0, 6)
+	RefreshCorner.Parent = RefreshBtn
+
+	local ListFrame = Instance.new("ScrollingFrame")
+	ListFrame.Name = "ButtonList"
+	ListFrame.Size = UDim2.new(1, 0, 0, 220)
+	ListFrame.BackgroundColor3 = Theme.Element
+	ListFrame.BackgroundTransparency = 0.35
+	ListFrame.BorderSizePixel = 0
+	ListFrame.ScrollBarThickness = 3
+	ListFrame.ScrollBarImageColor3 = Theme.Stroke
+	ListFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
+	ListFrame.AutomaticCanvasSize = Enum.AutomaticSize.Y
+	ListFrame.LayoutOrder = 1
+	ListFrame.Parent = ButtonsSection
+
+	local ListCorner = Instance.new("UICorner")
+	ListCorner.CornerRadius = UDim.new(0, 8)
+	ListCorner.Parent = ListFrame
+
+	local ListStroke = Instance.new("UIStroke")
+	ListStroke.Color = Theme.Stroke
+	ListStroke.Thickness = 1
+	ListStroke.Transparency = 0.45
+	ListStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+	ListStroke.Parent = ListFrame
+
+	local ListLayout = Instance.new("UIListLayout")
+	ListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+	ListLayout.Padding = UDim.new(0, 4)
+	ListLayout.Parent = ListFrame
+
+	local ListPad = Instance.new("UIPadding")
+	ListPad.PaddingTop = UDim.new(0, 6)
+	ListPad.PaddingBottom = UDim.new(0, 6)
+	ListPad.PaddingLeft = UDim.new(0, 6)
+	ListPad.PaddingRight = UDim.new(0, 6)
+	ListPad.Parent = ListFrame
+
+	local FIRETOUCH_PULSES = 2 -- the button needs multiple touches to register a buy, same as clicking it twice
+
+	local function fireTouch(buttonPart, pulses)
+		local character = LocalPlayer.Character
+		local hrp = character and character:FindFirstChild("HumanoidRootPart")
+		if not hrp or not buttonPart or not buttonPart.Parent then return end
+
+		if typeof(firetouchinterest) ~= "function" then
+			warn("[Buttons] firetouchinterest is not available in this executor.")
+			return
+		end
+
+		for i = 1, pulses or FIRETOUCH_PULSES do
+			if not buttonPart.Parent then break end
+			pcall(function()
+				firetouchinterest(hrp, buttonPart, 0)
+			end)
+			task.wait(0.1)
+			pcall(function()
+				firetouchinterest(hrp, buttonPart, 1)
+			end)
+			task.wait(0.1)
+		end
+	end
+
+	local function clearList()
+		for _, child in ipairs(ListFrame:GetChildren()) do
+			if child:IsA("Frame") then
+				child:Destroy()
+			end
+		end
+	end
+
+	local function resolveButtonPart(model)
+		local btnObj = model:FindFirstChild("Button", true)
+		if btnObj and btnObj:IsA("BasePart") then
+			return btnObj
+		end
+		for _, d in ipairs(model:GetDescendants()) do
+			if d:IsA("TouchTransmitter") and d.Parent and d.Parent:IsA("BasePart") then
+				return d.Parent
+			end
+		end
+		return nil
+	end
+
+	local function rebuildList()
+		clearList()
+
+		local root = workspace:FindFirstChild("ButtonModel")
+		if not root then
+			local empty = Instance.new("TextLabel")
+			empty.Size = UDim2.new(1, 0, 0, 28)
+			empty.BackgroundTransparency = 1
+			empty.Text = "ButtonModel not found"
+			empty.TextColor3 = Theme.TextDim
+			empty.TextSize = 11
+			empty.Font = Enum.Font.GothamSemibold
+			empty.Parent = ListFrame
+			return
+		end
+
+		local order = 0
+		for _, model in ipairs(root:GetChildren()) do
+			if model:IsA("Model") or model:IsA("Folder") then
+				order = order + 1
+
+				local buttonPart = resolveButtonPart(model)
+
+				local Row = Instance.new("Frame")
+				Row.Name = model.Name
+				Row.Size = UDim2.new(1, 0, 0, 32)
+				Row.BackgroundColor3 = Theme.Element
+				Row.BorderSizePixel = 0
+				Row.LayoutOrder = order
+				Row.Parent = ListFrame
+
+				local RowCorner = Instance.new("UICorner")
+				RowCorner.CornerRadius = UDim.new(0, 6)
+				RowCorner.Parent = Row
+
+				local RowStroke = Instance.new("UIStroke")
+				RowStroke.Color = Theme.Stroke
+				RowStroke.Thickness = 1
+				RowStroke.Transparency = 0.5
+				RowStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+				RowStroke.Parent = Row
+
+				local NameLabel = Instance.new("TextLabel")
+				NameLabel.Size = UDim2.new(1, -78, 1, 0)
+				NameLabel.Position = UDim2.new(0, 10, 0, 0)
+				NameLabel.BackgroundTransparency = 1
+				NameLabel.Text = model.Name
+				NameLabel.TextColor3 = Theme.Text
+				NameLabel.TextSize = 11
+				NameLabel.Font = Enum.Font.GothamSemibold
+				NameLabel.TextXAlignment = Enum.TextXAlignment.Left
+				NameLabel.TextTruncate = Enum.TextTruncate.AtEnd
+				NameLabel.Parent = Row
+
+				local BuyBtn = Instance.new("TextButton")
+				BuyBtn.Name = "Buy"
+				BuyBtn.Size = UDim2.new(0, 58, 0, 22)
+				BuyBtn.Position = UDim2.new(1, -66, 0.5, -11)
+				BuyBtn.BackgroundColor3 = buttonPart and Theme.Success or Theme.TrackOff
+				BuyBtn.Text = "Buy"
+				BuyBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+				BuyBtn.TextSize = 11
+				BuyBtn.Font = Enum.Font.GothamBold
+				BuyBtn.AutoButtonColor = false
+				BuyBtn.BorderSizePixel = 0
+				BuyBtn.Parent = Row
+
+				local BuyCorner = Instance.new("UICorner")
+				BuyCorner.CornerRadius = UDim.new(0, 6)
+				BuyCorner.Parent = BuyBtn
+
+				if buttonPart then
+					BuyBtn.MouseEnter:Connect(function()
+						tween(BuyBtn, TWEEN_FAST, {BackgroundColor3 = Color3.fromRGB(90, 220, 150)})
+					end)
+					BuyBtn.MouseLeave:Connect(function()
+						tween(BuyBtn, TWEEN_FAST, {BackgroundColor3 = Theme.Success})
+					end)
+					BuyBtn.MouseButton1Click:Connect(function()
+						task.spawn(fireTouch, buttonPart)
+					end)
+				else
+					BuyBtn.Text = "N/A"
+					BuyBtn.Active = false
+				end
+			end
+		end
+	end
+
+	RefreshBtn.MouseButton1Click:Connect(rebuildList)
+	rebuildList()
+
+	local AutoButtonsToggle = createToggle(ButtonsSection, "AutoButtonsToggle", "Auto Fire Buttons", 2)
+
+	AutoButtonsToggle.Changed = function(state)
+		if state then
+			task.spawn(function()
+				while AutoButtonsToggle.IsOn() and ScreenGui.Parent do
+					local root = workspace:FindFirstChild("ButtonModel")
+					if root then
+						for _, model in ipairs(root:GetChildren()) do
+							if not AutoButtonsToggle.IsOn() then break end
+							if (model:IsA("Model") or model:IsA("Folder")) and model.Parent then
+								local buttonPart = resolveButtonPart(model)
+								if buttonPart and buttonPart.Parent then
+									fireTouch(buttonPart)
+								end
+							end
+						end
+					end
+					task.wait(0.3)
+				end
+			end)
+		end
+	end
+
+	ListLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+		local h = math.clamp(ListLayout.AbsoluteContentSize.Y + 12, 80, 260)
+		ListFrame.Size = UDim2.new(1, 0, 0, h)
+		updateCanvasSize(ButtonsSection)
+	end)
+end
+
+-- Dragging
+local dragging = false
+local dragInput = nil
+local dragStart = nil
+local startPos = nil
+
+Header.InputBegan:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+		dragging = true
+		dragStart = input.Position
+		startPos = MainFrame.Position
+		input.Changed:Connect(function()
+			if input.UserInputState == Enum.UserInputState.End then
+				dragging = false
+			end
+		end)
+	end
+end)
+
+Header.InputChanged:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+		dragInput = input
+	end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+	if input == dragInput and dragging then
+		local delta = input.Position - dragStart
+		local newPos = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+		MainFrame.Position = newPos
+		Shadow.Position = UDim2.new(newPos.X.Scale, newPos.X.Offset + 2, newPos.Y.Scale, newPos.Y.Offset + 6)
+	end
+end)
+
+-- Minimize
+local minimized = false
+MinimizeBtn.MouseButton1Click:Connect(function()
+	minimized = not minimized
+	local targetSize = minimized and UDim2.new(0, 280, 0, 32) or UDim2.new(0, 280, 0, 346)
+	local shadowTarget = minimized and UDim2.new(0, 284, 0, 36) or UDim2.new(0, 284, 0, 352)
+
+	if minimized then
+		PanelContainer.Visible = false
+		Content.Visible = false
+		SearchRow.Visible = false
+		MasterBtn.Visible = false
+		hideDropdown()
+		MinimizeBtn.Text = "+"
+	end
+
+	local tweenInfo = TweenInfo.new(0.28, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
+	local sizeTween = TweenService:Create(MainFrame, tweenInfo, {Size = targetSize})
+	TweenService:Create(Shadow, tweenInfo, {Size = shadowTarget}):Play()
+
+	if not minimized then
+		sizeTween.Completed:Connect(function()
+			if not minimized then
+				PanelContainer.Visible = true
+				Content.Visible = true
+				SearchRow.Visible = true
+				MasterBtn.Visible = true
+				MinimizeBtn.Text = "_"
+			end
+		end)
+	end
+
+	sizeTween:Play()
+end)
+
+-- Dynamic Canvas Resizing
+for _, secName in ipairs(sectionOrder) do
+	local sec = sections[secName]
+	local layout = sec:FindFirstChildOfClass("UIListLayout")
+	if layout then
+		layout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+			if sec.Visible then
+				updateCanvasSize(sec)
+			end
+		end)
+	end
+end
+
+PanelList:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+	PanelContainer.CanvasSize = UDim2.new(0, PanelList.AbsoluteContentSize.X, 0, 0)
+end)
+
+-- Init
+task.spawn(function()
+	task.wait(0.05)
+	setActiveTab(Tabs[1].Button)
+	PanelContainer.CanvasSize = UDim2.new(0, PanelList.AbsoluteContentSize.X, 0, 0)
+
+	local introInfo = TweenInfo.new(0.35, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
+	tween(MainFrame, introInfo, {
+		Size = UDim2.new(0, 280, 0, 346),
+		Position = UDim2.new(0.5, -140, 0.35, 0),
+	})
+	tween(Shadow, introInfo, {
+		Size = UDim2.new(0, 284, 0, 352),
+		Position = UDim2.new(0.5, -138, 0.35, 6),
+	})
+end)
